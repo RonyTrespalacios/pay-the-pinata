@@ -11,6 +11,29 @@ pesa lo que pesa el texto que lo escribe.
 
 ---
 
+## Sin tocar la terminal
+
+Dos ficheros en la raíz, para doble clic:
+
+| Fichero | Qué hace |
+|---|---|
+| `jugar.bat` | Construye el juego desde el código y lo abre |
+| `empaquetar.bat` | Genera `release/win-unpacked/` — la carpeta que sube a Steam |
+| `empaquetar.bat instalador` | Genera el instalador NSIS, para repartir fuera de Steam |
+
+La primera vez que se ejecuta cualquiera de los dos se instalan las
+dependencias, que son unos minutos y ~150 MB de Electron. Después ya no.
+
+Comprueban antes que Node y Python estén instalados y, si falta alguno, dicen
+cuál y de dónde bajarlo en vez de escupir un error de npm. Si algo falla, la
+ventana se queda abierta para que se pueda leer el motivo; si todo va bien, se
+cierra sola.
+
+`jugar.bat` es para desarrollo: reconstruye el juego cada vez. Para jugar de
+verdad, o para dárselo a alguien, usa `empaquetar.bat` y reparte el `.exe`.
+
+---
+
 ## Los dos bucles
 
 **La Run.** 45 segundos en la línea de tiro. Cada *Sweet Hit* (el punto dulce de
@@ -135,6 +158,8 @@ dice si montó *bien*, que no es lo mismo.
 ## Estructura
 
 ```
+jugar.bat                doble clic: construye y abre el juego
+empaquetar.bat           doble clic: genera el ejecutable
 app/main.js              Electron: arranque, protocolo juego://, CSP, permisos
 app/ventana.js           la ventana: tamaño, F11, nada de navegar fuera
 app/steam.js             Steamworks, opcional de verdad (ver arriba)
