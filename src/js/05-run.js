@@ -109,11 +109,43 @@ function updateHUD() {
     else tp.classList.remove('on'); }
   ui.party.textContent = S.perm.party; ui.tier.textContent = D.tier(); ui.run.textContent = S.party.runCount + 1;
 }
+// One shot puts up several of these at once — the Candy, the Round the Sweet Hit refunds, the
+// zone multiplier — and they are all born at the same point in the world, so they projected to
+// the same screen coordinates and printed on top of each other: "+16 Candy" sitting on
+// "SWEET +1 Round". The ±15px of horizontal scatter was never going to separate them, and the
+// float animation only travels about 19px in a whole second — less than one line of text.
+//
+// So a spot is reserved when it is used, and anything landing on an occupied one lines up with
+// it and goes a line higher. The reservation is deliberately short-lived: it exists to group the
+// floaters of a single hit, which all spawn in the same tick. Keeping it any longer would make
+// later shots stack onto stale positions the earlier floaters have already drifted away from,
+// which reads worse than not stacking at all.
+const FLOAT_LINE = 18;      // vertical spacing, px
+const FLOAT_NEAR = 44;      // closer than this horizontally counts as the same spot
+const FLOAT_MEMORY = 250;   // ms a spot stays reserved
+const floatTaken = [];
+
+function floatSlot(x, y) {
+  const now = performance.now();
+  for (let i = floatTaken.length - 1; i >= 0; i--) if (now - floatTaken[i].t > FLOAT_MEMORY) floatTaken.splice(i, 1);
+  // Adopt the x of whatever is in the way instead of keeping our own: a hit then reads as one
+  // tidy stack rather than a crooked staircase. Terminates because y only ever moves up, a line
+  // at a time, and there are finitely many reservations to clear.
+  let clash;
+  while ((clash = floatTaken.find(f => Math.abs(f.x - x) < FLOAT_NEAR && Math.abs(f.y - y) < FLOAT_LINE))) {
+    x = clash.x; y = clash.y - FLOAT_LINE;
+  }
+  floatTaken.push({ x, y, t: now });
+  return { x, y };
+}
+
 function floater(text, cls, worldPos) {
   const el = document.createElement('div'); el.className = 'floater ' + (cls || ''); el.textContent = T(text);
   let x = window.innerWidth / 2, y = window.innerHeight / 2 - 40;
   if (worldPos) { _v.copy(worldPos).project(camera); x = (_v.x * 0.5 + 0.5) * window.innerWidth; y = (-_v.y * 0.5 + 0.5) * window.innerHeight; }
-  x += (Math.random() - 0.5) * 30; el.style.left = x + 'px'; el.style.top = y + 'px';
+  x += (Math.random() - 0.5) * 30;
+  const slot = floatSlot(x, y); x = slot.x; y = slot.y;
+  el.style.left = x + 'px'; el.style.top = y + 'px';
   ui.floaters.appendChild(el); setTimeout(() => el.remove(), 1000);
 }
 let toastT = null;

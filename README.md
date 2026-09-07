@@ -143,10 +143,17 @@ juego de verdad, disparan a piñatas de verdad proyectando su punto dulce a
 coordenadas de pantalla, y recogen cualquier error de consola por el camino.
 
 ```bash
-npm run test       # el JUEGO, en un navegador: menú, Run, Buzón, Árbol
-npm run test:app   # la CAJA: la ventana de Electron sobre el árbol de fuentes
+npm run test            # el JUEGO, en un navegador: menú, Run, Buzón, Árbol
+npm run test:app        # la CAJA: la ventana de Electron sobre el árbol de fuentes
+npm run test:floaters   # que los avisos de impacto no se pisen entre ellos
 node test/electron.js "release/win-unpacked/Party Tab.exe"   # y sobre el .exe
 ```
+
+`test:floaters` existe porque ese fallo es invisible para todo lo demás: no
+lanza ningún error, no rompe ningún estado, el juego funciona. Un Punto Dulce
+que rompe saca tres avisos a la vez desde el mismo punto del mundo, y basta con
+volver a alinearlos por coordenadas para que se apilen unos encima de otros.
+Solo se ve mirando, y para entonces ya está delante del jugador.
 
 Los dos últimos son la misma prueba apuntando a sitios distintos, y esa
 distinción importa antes de subir nada: sin argumento se prueba `dist/app/`
