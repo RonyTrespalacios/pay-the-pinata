@@ -1,0 +1,14 @@
+const { chromium } = require('playwright'); const path=require('path'); const fs=require('fs'); const http=require('http');
+const three = fs.readFileSync(path.join(__dirname,'..','node_modules/three/build/three.min.js'));
+const server = http.createServer((q,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end(fs.readFileSync(path.join(__dirname,'..','dist/index.html')));}).listen(8776);
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});const page=await b.newPage({viewport:{width:1400,height:860}});
+const errors=[]; page.on('pageerror',e=>errors.push('PAGEERROR '+e.message)); page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
+await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
+await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+await page.goto('http://localhost:8776/');await page.waitForTimeout(1200);
+await page.evaluate(()=>{pointerLockSupported=false;});await page.click('#btn-start');await page.waitForTimeout(500);
+await page.evaluate(async()=>{const sleep=ms=>new Promise(r=>setTimeout(r,ms)); S.party.tabsPaid=9; S.perm.weaponsUnlocked=['pistol','six','shotgun','rifle','cannon']; S.party.weapon='pistol'; clearPinatas(); startRun({}); await sleep(200); clearPinatas();
+  spawnHanging('cactus'); spawnHanging('sun'); const L=spawnLlama(); L.pivot.position.set(-1.5,1.4,-4.5); L.gallopSpeed=0; L.update(0.016, 1); look.tPitch=0.05; look.pitch=0.05; RUN.heat=0.9; updateHUD(); });
+await page.waitForTimeout(300); await page.screenshot({path:'test/v7-kinds.png'});
+console.log('ERRORS:',errors.length?errors.join('\n'):'none');
+await b.close();server.close();})();

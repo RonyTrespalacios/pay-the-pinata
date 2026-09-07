@@ -1,0 +1,52 @@
+# =========================================================
+# Que NO se versiona en este repositorio.
+# =========================================================
+
+# --- generado por el build ---
+# dist/ sale entero de `python build.py` y de electron-builder: HTML
+# ensamblado, carpeta de la app y el ejecutable empaquetado. Nada de esto
+# es fuente, y el .exe pesa ~200 MB. Se reconstruye con un comando.
+dist/
+node_modules/
+
+# --- terceros vendorizados: los baja `npm run vendor` ---
+# three.js y las fuentes se copian desde node_modules / Google Fonts al
+# construir. Versionarlos duplicaria binarios que ya vienen del lockfile.
+vendor/three/
+vendor/fonts/
+
+# --- Steamworks SDK: binarios de terceros, no son nuestros ---
+vendor/steam/**/*.dll
+vendor/steam/**/*.lib
+vendor/steam/**/*.so
+vendor/steam/**/*.dylib
+tools/ContentBuilder/builder/
+tools/ContentBuilder/content/
+tools/ContentBuilder/output/
+
+# --- credenciales y config local de SteamPipe ---
+*.vdf.local
+steam_credentials*
+
+# --- SOLO DESARROLLO. Nunca en el deposito ni en el repo publico: lleva el
+#     appid y ademas confunde al cliente de Steam en la maquina del jugador.
+steam_appid.txt
+
+# --- capturas que escupen las pruebas de playwright ---
+test/*.png
+
+# --- sistema y editores ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+
+# --- logs y temporales ---
+*.log
+npm-debug.log*
+*.tmp
+*.bak

@@ -1,0 +1,16 @@
+const { chromium } = require('playwright'); const path=require('path'); const fs=require('fs'); const http=require('http');
+const three = fs.readFileSync(path.join(__dirname,'..','node_modules/three/build/three.min.js'));
+const server = http.createServer((q,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end(fs.readFileSync(path.join(__dirname,'..','dist/index.html')));}).listen(8793);
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});const page=await b.newPage({viewport:{width:1600,height:900}});
+const errs=[];page.on('pageerror',e=>errs.push(e.message));page.on('console',m=>{if(m.type()==='error')errs.push(m.text())});
+await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
+await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+await page.goto('http://localhost:8793/');await page.waitForTimeout(1200);
+await page.evaluate(()=>setLang('es'));
+await page.screenshot({path:'test/menu-es.png'});
+await page.click('#btn-title-how'); await page.waitForTimeout(300);
+await page.screenshot({path:'test/menu-how-es.png'});
+await page.evaluate(()=>{$('how-to').hidden=true; setLang('en');});
+await page.screenshot({path:'test/menu-en.png'});
+console.log('ERR:',errs.length?errs.join('|'):'none');
+await b.close();server.close();})();

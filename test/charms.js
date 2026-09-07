@@ -1,0 +1,12 @@
+const { chromium } = require('playwright'); const path=require('path'); const fs=require('fs'); const http=require('http');
+const three = fs.readFileSync(path.join(__dirname,'..','node_modules/three/build/three.min.js'));
+const server = http.createServer((q,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end(fs.readFileSync(path.join(__dirname,'..','dist/index.html')));}).listen(8772);
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});const page=await b.newPage({viewport:{width:1000,height:560}});
+await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
+await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+await page.goto('http://localhost:8772/');await page.waitForTimeout(1000);
+await page.evaluate(()=>{pointerLockSupported=false;});await page.click('#btn-start');await page.waitForTimeout(500);
+await page.evaluate(()=>{S.perm.keepsakes=20;openPanel('charms');});await page.waitForTimeout(300);
+const ov=await page.evaluate(()=>{const b=document.getElementById('panel-body');b.scrollTop=9999;return {scroll:b.scrollHeight,client:b.clientHeight,canScroll:b.scrollHeight>b.clientHeight,cards:document.querySelectorAll('.charm').length};});
+console.log(JSON.stringify(ov));await page.screenshot({path:'test/k6-charms-small.png'});
+await b.close();server.close();})();

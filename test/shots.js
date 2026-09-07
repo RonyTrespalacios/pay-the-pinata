@@ -1,0 +1,15 @@
+const { chromium } = require('playwright'); const path=require('path'); const fs=require('fs'); const http=require('http');
+const three = fs.readFileSync(path.join(__dirname,'..','node_modules/three/build/three.min.js'));
+const server = http.createServer((q,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end(fs.readFileSync(path.join(__dirname,'..','dist/index.html')));}).listen(8767);
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});const page=await b.newPage({viewport:{width:1280,height:760}});
+await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
+await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+await page.goto('http://localhost:8767/');await page.waitForTimeout(1200);await page.screenshot({path:'test/s1-title.png'});
+await page.click('#btn-start');await page.waitForTimeout(200);
+await page.evaluate(()=>{pointerLockSupported=false;S.party.tabsPaid=7;S.party.tabs.forEach(t=>t.dueLeft=0);S.party.backerTaken=300;clearPinatas();startRun({toss:true});for(const k of ['skull','glass','nest','bull']) spawnHanging(k); look.tPitch=0.15;});
+await page.waitForTimeout(2500);await page.screenshot({path:'test/s2-tier4.png'});
+await page.evaluate(()=>{const P=pinatas.find(p=>p.kindId==='nest');if(P){const v=new THREE.Vector3();P.sweetMeshes[0].getWorldPosition(v);v.project(camera);aim.x=v.x;aim.y=v.y;shoot(RUN.timeInRun);}});
+await page.waitForTimeout(700);await page.screenshot({path:'test/s3-nest.png'});
+await page.evaluate(()=>{RUN.mag=0;afterShot();});await page.waitForTimeout(1800);
+await page.click('.mail-tabs button[data-pane="tabs"]');await page.waitForTimeout(200);await page.screenshot({path:'test/s4-tabs.png'});
+await b.close();server.close();})();

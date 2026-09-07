@@ -1,0 +1,14 @@
+const { chromium } = require('playwright'); const path=require('path'); const fs=require('fs'); const http=require('http');
+const three = fs.readFileSync(path.join(__dirname,'..','node_modules/three/build/three.min.js'));
+const server = http.createServer((q,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end(fs.readFileSync(path.join(__dirname,'..','dist/index.html')));}).listen(8782);
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});const page=await b.newPage({viewport:{width:1400,height:860}});
+const errors=[]; page.on('pageerror',e=>errors.push('PAGEERROR '+e.message)); page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
+await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
+await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+await page.goto('http://localhost:8782/');await page.waitForTimeout(1200);
+await page.evaluate(()=>{pointerLockSupported=false;});await page.click('#btn-start');await page.waitForTimeout(500);
+const r=await page.evaluate(async()=>{const sleep=ms=>new Promise(r=>setTimeout(r,ms)); tutSkip(); S.perm.weaponsUnlocked=WEAPONS.map(w=>w.id); clearPinatas(); startRun({}); await sleep(300); clearPinatas();
+  S.party.weapon='shotgun'; buildGun(D.weapon()); const near=spawnPinata('bull',{position:new THREE.Vector3(0,2.3,-4), stringLen:0.4}); await sleep(50); const v=near.worldPos().clone().project(camera);
+  const hits=castRay(v.x,v.y,allHittables()); const o={v:[v.x.toFixed(2),v.y.toFixed(2)], hits:hits.length, cam:camera.position.toArray().map(x=>x.toFixed(1)), rot:camera.rotation.toArray().slice(0,3).map(x=>+x.toFixed(2)), paused:PAUSE.on, mode:HUB.mode, hitt:allHittables().length};
+  aim.x=v.x; aim.y=v.y; RUN.lastShotT=-99; RUN.mag=6; shoot(2); o.after={alive:near.alive, dmg:near.damage, shots:RUN.shots, miss:RUN.missCount, spread:D.spread(D.weapon()), pellets:D.shotgunPellets()}; return o;});
+console.log(JSON.stringify(r)); console.log('ERRORS:',errors.join('\n')||'none'); await b.close(); server.close();})();

@@ -1,0 +1,14 @@
+const { chromium } = require('playwright'); const path=require('path'); const fs=require('fs'); const http=require('http');
+const three = fs.readFileSync(path.join(__dirname,'..','node_modules/three/build/three.min.js'));
+const server = http.createServer((q,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end(fs.readFileSync(path.join(__dirname,'..','dist/index.html')));}).listen(8785);
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});const page=await b.newPage({viewport:{width:1600,height:900}});
+const errors=[]; page.on('pageerror',e=>errors.push('PAGEERROR '+e.message)); page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
+await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
+await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+await page.addInitScript(()=>{ localStorage.setItem('partytab.save.v1', JSON.stringify({perm:{keepsakes:0,charms:{},weaponsUnlocked:['pea'],seenWeapons:['pea'],party:1,credits:0,aimMode:'lock',muted:false,keepsakesEver:0,v:3,sens:1.6},party:{candy:0,tabs:[],tabsPaid:0,nodes:{},favors:{},runCount:0,weapon:'pea',nextTabId:1,guestCursor:0,wup:{}}})); });
+await page.goto('http://localhost:8785/');await page.waitForTimeout(1200);
+const r=await page.evaluate(()=>{ const o={migratedSens:S.perm.sensV, fov:camera.fov, hfov:(2*Math.atan(Math.tan(camera.fov*Math.PI/360)*(16/9))*180/Math.PI).toFixed(1)}; pointerLockSupported=false; document.getElementById('btn-start').click(); tutSkip(); setPaused(false);
+  setSens(0.3); const y0=look.yaw; canvas.dispatchEvent(new MouseEvent('mousemove',{clientX:800,clientY:450,movementX:-100,movementY:0})); o.deg100counts=((look.yaw-y0)*180/Math.PI).toFixed(3); o.expected=(0.3*0.0705*100).toFixed(3);
+  o.info=document.getElementById('set-sens-info').textContent; o.slider={min:document.getElementById('set-sens').min,max:document.getElementById('set-sens').max,step:document.getElementById('set-sens').step}; return o;});
+console.log(JSON.stringify(r)); await page.evaluate(()=>{ setPaused(true); document.getElementById('btn-settings').click(); }); await page.waitForTimeout(200); await page.screenshot({path:'test/v12-settings.png'});
+console.log('ERRORS:',errors.length?errors.join('\n'):'none'); await b.close();server.close();})();

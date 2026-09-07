@@ -1,0 +1,13 @@
+const { chromium } = require('playwright'); const path=require('path'); const fs=require('fs'); const http=require('http');
+const three = fs.readFileSync(path.join(__dirname,'..','node_modules/three/build/three.min.js'));
+const server = http.createServer((q,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end(fs.readFileSync(path.join(__dirname,'..','dist/index.html')));}).listen(8783);
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});const page=await b.newPage({viewport:{width:1400,height:860}});
+const errors=[]; page.on('pageerror',e=>errors.push('PAGEERROR '+e.message));
+await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
+await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+await page.goto('http://localhost:8783/');await page.waitForTimeout(1200);
+await page.evaluate(()=>{pointerLockSupported=false;});await page.click('#btn-start');await page.waitForTimeout(400);
+await page.evaluate(async()=>{ tutSkip(); setPaused(false); S.party.tabs.forEach(t=>t.dueLeft=0); for(let i=0;i<200;i++){ updateBacker(0.05, i*0.05); } BACKER.group.position.copy(CHELO_COLLECT); const hp=BACKER.group.position; HUB.pos.set(hp.x+1.6, 0, hp.z+1.8); const dx=hp.x-HUB.pos.x, dz=hp.z-HUB.pos.z; look.yaw=Math.atan2(-dx, -dz); look.pitch=0.02; look.tYaw=look.yaw; look.tPitch=look.pitch; if(BACKER.bubble){BACKER.group.remove(BACKER.bubble);BACKER.bubble=null;} BACKER.bubbleUntil=0; });
+await page.waitForTimeout(400); await page.screenshot({path:'test/v10-dread2.png'});
+await page.evaluate(()=>{ HUB.near=stationById.chelo; interact(); }); await page.waitForTimeout(300); await page.screenshot({path:'test/v10-chelo.png'});
+console.log('ERRORS:',errors.join('\n')||'none'); await b.close(); server.close();})();

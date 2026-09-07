@@ -1,0 +1,15 @@
+const { chromium } = require('playwright'); const path=require('path'); const fs=require('fs'); const http=require('http');
+const three = fs.readFileSync(path.join(__dirname,'..','node_modules/three/build/three.min.js'));
+const server = http.createServer((q,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end(fs.readFileSync(path.join(__dirname,'..','dist/index.html')));}).listen(8779);
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});const page=await b.newPage({viewport:{width:1400,height:860}});
+const errors=[]; page.on('pageerror',e=>errors.push('PAGEERROR '+e.message)); page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
+await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
+await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+await page.goto('http://localhost:8779/');await page.waitForTimeout(1200);
+await page.evaluate(()=>{pointerLockSupported=false;});await page.click('#btn-start');await page.waitForTimeout(400);
+const r=await page.evaluate(async()=>{ S.party.candy=3000; S.party.runCount=2; openPanel('tree'); await new Promise(r=>setTimeout(r,600)); fitView(true); await new Promise(r=>setTimeout(r,200));
+  const imgs=document.querySelectorAll('#tree-svg image').length; const thumbs=Object.keys(THUMBS).filter(k=>THUMBS[k]).length; selectNode(NODE_BY_ID.p_burro); return {imgs, thumbs, pinatasLeft:pinatas.length, count:document.querySelectorAll('#tree-svg .node').length};});
+console.log(JSON.stringify(r)); await page.screenshot({path:'test/v9-tree.png'});
+await page.evaluate(()=>{ VIEW.init=false; fitView(false); const g=document.querySelector('[data-node="p_donkey"]'); }); await page.waitForTimeout(200); await page.screenshot({path:'test/v9-tree2.png'});
+console.log('ERRORS:',errors.length?errors.join('\n'):'none');
+await b.close();server.close();})();

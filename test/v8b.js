@@ -1,0 +1,16 @@
+const { chromium } = require('playwright'); const path=require('path'); const fs=require('fs'); const http=require('http');
+const three = fs.readFileSync(path.join(__dirname,'..','node_modules/three/build/three.min.js'));
+const server = http.createServer((q,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end(fs.readFileSync(path.join(__dirname,'..','dist/index.html')));}).listen(8778);
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});const page=await b.newPage({viewport:{width:1400,height:860}});
+const errors=[]; page.on('pageerror',e=>errors.push('PAGEERROR '+e.message));
+await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
+await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+await page.goto('http://localhost:8778/');await page.waitForTimeout(1200);
+await page.evaluate(()=>{pointerLockSupported=false;});await page.click('#btn-start');await page.waitForTimeout(400);
+await page.evaluate(async()=>{ S.party.tabsPaid=9; clearPinatas(); startRun({}); await new Promise(r=>setTimeout(r,200)); clearPinatas();
+  const kinds=['armored','glitter','cluster','mini']; kinds.forEach((k,i)=>{ const p=spawnPinata(k,{position:new THREE.Vector3(-3+i*2,2.4,-3.2), stringLen:0.3}); if(k==='mini'){p.hopV=0;p.hopDir.set(0,0,0);} });
+  const K=spawnComet(); K.pivot.position.set(3.4,2.2,-3.2); K.gallopSpeed=0; K.update(0.016,1); K.dir=1;
+  look.pitch=0.15; look.yaw=0; camera.rotation.set(0.15,0,0,'YXZ'); });
+await page.waitForTimeout(400); await page.screenshot({path:'test/v8-kinds2.png'});
+console.log('ERRORS:',errors.length?errors.join('\n'):'none');
+await b.close();server.close();})();

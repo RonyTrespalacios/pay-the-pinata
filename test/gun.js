@@ -1,0 +1,13 @@
+const { chromium } = require('playwright'); const path=require('path'); const fs=require('fs'); const http=require('http');
+const three = fs.readFileSync(path.join(__dirname,'..','node_modules/three/build/three.min.js'));
+const server = http.createServer((q,res)=>{res.writeHead(200,{'content-type':'text/html'});res.end(fs.readFileSync(path.join(__dirname,'..','dist/index.html')));}).listen(8794);
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--autoplay-policy=no-user-gesture-required']});const page=await b.newPage({viewport:{width:1600,height:900}});
+const errs=[];page.on('pageerror',e=>errs.push(e.message));
+await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
+await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
+await page.goto('http://localhost:8794/');await page.waitForTimeout(1200);
+await page.evaluate(async()=>{const sleep=ms=>new Promise(r=>setTimeout(r,ms)); pointerLockSupported=false; tutSkip&&tutSkip(); document.getElementById('btn-start').click(); await sleep(400); tutSkip&&tutSkip(); setPaused(false); S.party.weapon='pea'; startRun({}); await sleep(400); look.pitch=look.tPitch=-0.35; updateHub&&updateHub(0.016,1);});
+await page.waitForTimeout(400);
+await page.screenshot({path:'test/gun-pea.png'});
+console.log('ERR:',errs.length?errs.join('|'):'none');
+await b.close();server.close();})();
