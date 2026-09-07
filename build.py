@@ -34,6 +34,16 @@ FONT = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
         '<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">')
 TITULO = 'Party Tab'
 
+# Lo unico que separa al juego de escritorio del de navegador una vez dentro
+# del codigo. El juego lo mira para no ofrecer los apanos de la version web:
+# en una ventana propia el raton SIEMPRE se puede capturar, asi que no hay
+# nada de que avisar ni ningun modo de respaldo que ofrecer.
+#
+# Va inyectado aqui y no como <script> suelto en el HTML porque la CSP del
+# proceso main prohibe el codigo en linea, y un fichero mas solo para poner
+# una variable a true no compensa.
+PREAMBULO_APP = '// Puesto por build.py: esto es el ejecutable, no una pestana.\nwindow.ESCRITORIO = true;\n\n'
+
 read = lambda p: p.read_text(encoding='utf-8')
 write = lambda p, s: p.write_text(s, encoding='utf-8')
 
@@ -103,7 +113,7 @@ def construir_app():
     shutil.copyfile(vendor / 'fonts.css', app / 'fonts.css')
 
     write(app / 'game.css', css)
-    write(app / 'game.js', js)
+    write(app / 'game.js', PREAMBULO_APP + js)
     write(app / 'index.html', f"""<!doctype html>
 <html lang="en">
 <head>

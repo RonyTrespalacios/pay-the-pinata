@@ -68,6 +68,22 @@ const EMPAQUETADO = process.argv[2] ? path.resolve(RAIZ, process.argv[2]) : null
     fuente: document.fonts ? document.fonts.check('16px "Baloo 2"') : 'sin api'
   }));
 
+  // --- Captura del raton -------------------------------------------------
+  // Se prueba aparte porque es lo que separa un juego de escritorio de una
+  // pagina: al empezar la partida el raton tiene que quedar capturado sin
+  // pedir un clic mas, y no puede aparecer ni el aviso de la version web ni el
+  // modo de respaldo en el que la camara persigue al cursor.
+  let raton = { error: 'no se llego a probar' };
+  try {
+    await ventana.click('#btn-start', { timeout: 5000 });
+    await ventana.waitForTimeout(1500);
+    raton = await ventana.evaluate(() => ({
+      capturado: !!document.pointerLockElement,
+      modoRespaldo: typeof aim !== 'undefined' && aim.mouseMode,
+      aviso: (document.getElementById('toast') || {}).textContent.trim()
+    }));
+  } catch (e) { raton = { error: e.message.split('\n')[0] }; }
+
   await app.close();
 
   console.log('  url         ' + estado.url);
@@ -77,12 +93,22 @@ const EMPAQUETADO = process.argv[2] ? path.resolve(RAIZ, process.argv[2]) : null
   console.log('  localStorage ' + estado.guardado);
   console.log('  fuente      ' + (estado.fuente === true ? 'Baloo 2 cargada' : 'fallback (' + estado.fuente + ')'));
   console.log('  captura     ' + path.relative(RAIZ, captura));
+  console.log('  raton       ' + (raton.error ? 'no probado: ' + raton.error
+    : (raton.capturado ? 'capturado al empezar' : 'SUELTO') +
+      (raton.modoRespaldo ? ' · EN MODO RESPALDO' : '') +
+      (raton.aviso ? ' · aviso: "' + raton.aviso.slice(0, 50) + '"' : '')));
 
   const fallos = [];
   if (!estado.url.startsWith('juego://')) fallos.push('el juego no se sirve por el esquema juego://');
   if (!estado.three) fallos.push('three.js no cargo: el vendorizado no llego al paquete');
   if (!estado.lienzo || estado.lienzo.startsWith('0x')) fallos.push('el lienzo no tiene tamano: la escena no monto');
   if (estado.guardado !== 'ok') fallos.push('localStorage no funciona: no se puede guardar la partida');
+  if (raton.error) fallos.push('no se pudo probar la captura del raton: ' + raton.error);
+  else {
+    if (!raton.capturado) fallos.push('el raton no queda capturado al empezar la partida');
+    if (raton.modoRespaldo) fallos.push('el juego cayo al modo de respaldo web (la camara sigue al cursor)');
+    if (raton.aviso) fallos.push('salio un aviso que no deberia existir en el ejecutable: "' + raton.aviso + '"');
+  }
   if (errores.length) fallos.push(errores.length + ' error(es) en la ventana:\n    ' + errores.join('\n    '));
 
   if (fallos.length) {

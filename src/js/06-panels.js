@@ -47,7 +47,7 @@ function closePanel() {
   if (PANEL.kind === null) return;
   PANEL.kind = null; $('panel').hidden = true; selectedNode = null;
   if (PANEL.returnTo === 'title') { PANEL.returnTo = null; HUB.mode = 'title'; showScreen('title'); document.body.classList.add('menu'); return; }
-  if (HUB.mode === 'panel') { HUB.mode = 'hub'; document.body.classList.remove('menu'); refreshHub(); interactCooldownUntil = performance.now() + 400; if (!aim.mouseMode && !aim.locked) setPaused(true); }
+  if (HUB.mode === 'panel') { HUB.mode = 'hub'; document.body.classList.remove('menu'); refreshHub(); interactCooldownUntil = performance.now() + 400; backToWorld(); }
 }
 function renderPanel() {
   const kind = PANEL.kind; if (!kind) return;
@@ -238,7 +238,7 @@ function showRunOver() {
 }
 function closeRunOver() {
   $('runover').classList.remove('on'); document.body.classList.remove('menu');
-  HUB.mode = 'hub'; interactCooldownUntil = performance.now() + 1500; refreshHub(); if (!aim.mouseMode && !aim.locked) setPaused(true);
+  HUB.mode = 'hub'; interactCooldownUntil = performance.now() + 1500; refreshHub(); backToWorld();
 }
 let recapT = null;
 function showRecapCard() {

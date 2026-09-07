@@ -5,13 +5,25 @@ const inWorld = () => HUB.mode === 'hub' || HUB.mode === 'run';
 
 // Captured mouse is the only look mode. `aim.mouseMode` is now purely an emergency fallback
 // for browsers/frames that refuse pointer lock (cursor position drives the camera, no smoothing, no edge-turn).
+//
+// DESKTOP (window.ESCRITORIO, set by build.py in the dist/app bundle): the fallback does not
+// apply. A window we own can always capture the mouse, so there is nothing to warn about and
+// no degraded mode worth offering — any failure here is transient and gets retried.
+const ESCRITORIO = !!window.ESCRITORIO;
+
 function tryPointerLock() {
   if (!pointerLockSupported) { setMouseMode(true); return; }
-  try {
-    // raw input: ask the browser to skip OS acceleration (unadjustedMovement); fall back to a plain lock where unsupported
-    let r = null; try { r = canvas.requestPointerLock({ unadjustedMovement: true }); } catch (e) { r = canvas.requestPointerLock(); }
-    if (r && r.catch) r.catch(() => { try { const r2 = canvas.requestPointerLock(); if (r2 && r2.catch) r2.catch(() => setMouseMode(true)); } catch (e) { setMouseMode(true); } });
-  } catch (e) { setMouseMode(true); }
+  requestLock(true);
+}
+
+// `raw` asks for movement without the OS mouse acceleration curve (unadjustedMovement), which is
+// what anyone aiming actually wants. Not every machine supports it; there it rejects and we ask
+// again for a plain lock. That first rejection is the negotiation, not a failure.
+function requestLock(raw) {
+  let p = null;
+  try { p = raw ? canvas.requestPointerLock({ unadjustedMovement: true }) : canvas.requestPointerLock(); }
+  catch (e) { if (raw) requestLock(false); return; }
+  if (p && p.catch) p.catch(() => { if (raw) requestLock(false); });
 }
 function setMouseMode(on) {
   aim.mouseMode = on; document.body.classList.toggle('mouse-aim', on); aim.x = 0; aim.y = 0;
@@ -24,6 +36,13 @@ function setPaused(on) {
   if (on) { $('settings').hidden = true; document.querySelector('.pause-menu').hidden = false; $('btn-to-title').hidden = HUB.mode === 'title'; $('btn-resume').textContent = T(HUB.mode === 'title' ? 'Close' : 'Resume'); $('btn-to-yard').hidden = HUB.mode !== 'run'; $('btn-to-yard').textContent = es('End the Run early (bank ' + fmt(RUN.runCandy) + ' Candy)', 'Terminar la Ronda ya (guardar ' + fmt(RUN.runCandy) + ' Dulces)'); syncSettingsUI(); }
 }
 function resumeGame() { if (aim.mouseMode || HUB.mode === 'title') setPaused(false); else tryPointerLock(); }
+// Coming back to the world after closing a panel or the Run summary. In a tab the pause menu has
+// to appear, because the browser will only capture the mouse on a click and that menu is where the
+// click lives. In the desktop build the close itself was the click, so just take the mouse back.
+function backToWorld() {
+  if (aim.mouseMode || aim.locked) return;
+  if (ESCRITORIO) tryPointerLock(); else setPaused(true);
+}
 function syncSettingsUI() {
   const s = sensV(); $('set-sens').value = s; $('set-sens-v').textContent = s.toFixed(2); $('set-sens-num').value = s.toFixed(2); $('set-dpi').value = S.perm.dpi || 800; updateSensInfo();
   $('set-sound').checked = !S.perm.muted; $('set-sound-v').textContent = S.perm.muted ? es('off', 'no') : es('on', 'sí');
@@ -67,7 +86,20 @@ document.addEventListener('pointerlockchange', () => {
   else if (inWorld() && !aim.mouseMode) setPaused(true);
 });
 $('pause').addEventListener('click', e => { if (e.target === $('pause')) resumeGame(); });
-document.addEventListener('pointerlockerror', () => { setMouseMode(true); toast('This page blocks mouse capture — the camera follows the cursor instead. Open the downloaded party-tab.html for the real thing.', 6000); });
+// The one place that decides mouse capture has REALLY failed.
+//
+// Not on the first pointerlockerror: that event also fires when the raw-input attempt is refused,
+// and the plain retry succeeds a moment later. Believing that first error is what put up the
+// "this page blocks mouse capture" notice and left the camera chasing the cursor while the mouse
+// was, in fact, captured. So wait, then look at how it actually ended up.
+document.addEventListener('pointerlockerror', () => {
+  setTimeout(() => {
+    if (document.pointerLockElement) return;                    // it ended up locked: there was no failure
+    if (ESCRITORIO) { if (inWorld()) setPaused(true); return; } // our own window: pause, and the next click retries
+    setMouseMode(true);
+    toast('This page blocks mouse capture — the camera follows the cursor instead. Open the downloaded index.html for the real thing.', 6000);
+  }, 400);
+});
 
 // In the hub the Host can turn all the way around; on the firing line the yard is in front.
 function yawLimit() { return HUB.mode === 'run' ? YAW_MAX_RUN : Infinity; }
@@ -102,7 +134,11 @@ window.addEventListener('mouseup', e => { if (e.button === 0) aim.firing = false
 canvas.addEventListener('wheel', e => { if (PANEL.kind || PAUSE.on || !inWorld()) return; e.preventDefault(); const owned = WEAPONS.map((w, i) => i + 1).filter(n => D.weaponUnlocked(WEAPONS[n - 1].id)); if (owned.length < 2) return; const cur = WEAPONS.findIndex(w => w.id === S.party.weapon) + 1; let i = owned.indexOf(cur); i = (i + (e.deltaY > 0 ? 1 : -1) + owned.length) % owned.length; equipWeapon(owned[i]); }, { passive: false });
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 window.addEventListener('keydown', e => {
-  if (e.code === 'Escape') { if (!$('how-to').hidden) { $('how-to').hidden = true; } else if (PANEL.kind) closePanel(); else if (HUB.mode === 'runover') closeRunOver(); else if (PAUSE.on) resumeGame(); else if (aim.mouseMode && inWorld()) setPaused(true); return; }   // captured mode: the browser itself drops the lock and pointerlockchange pauses
+  if (e.code === 'Escape') { if (!$('how-to').hidden) { $('how-to').hidden = true; } else if (PANEL.kind) closePanel(); else if (HUB.mode === 'runover') closeRunOver(); else if (PAUSE.on) resumeGame(); else if (inWorld()) { if (document.pointerLockElement) document.exitPointerLock(); setPaused(true); } return; }
+  // Esc releases the mouse and pauses, explicitly. This used to lean on the browser dropping the
+  // lock by itself and pointerlockchange doing the pausing — true in a tab, not something to bet
+  // the only way out of a captured mouse on once the game owns its own window. exitPointerLock is
+  // a no-op when nothing is locked, so both paths still end in the same place.
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
   if (PAUSE.on || HUB.mode === 'runover') { if (HUB.mode === 'runover' && (e.code === 'Enter' || e.code === 'KeyE')) closeRunOver(); else if (HUB.mode === 'runover' && e.code === 'KeyR' && !$('btn-runover-again').hidden) $('btn-runover-again').click(); return; }
   HUB.keys[e.code] = true;
@@ -190,6 +226,10 @@ $('btn-start').onclick = () => {
   beep(660, 0.05, 'triangle', 0.01); startMusic(); setMusicMode('hub');
   if (S.party.runCount === 0 && !S.party.tabs.length) arriveTabsIfDue();
   enterHub();
+  // Desktop: grab the mouse right here. This click is the user gesture pointer lock requires, so
+  // the player walks straight into the Backyard already captured instead of landing with a loose
+  // cursor and having to click the canvas a second time to start playing for real.
+  if (ESCRITORIO) tryPointerLock();
   if (S.party.runCount === 0) backerSay('Enjoy it, mijo. We talk after.', 5);
   tutStart();
 };

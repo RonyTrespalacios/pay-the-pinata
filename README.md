@@ -107,6 +107,13 @@ Lo que el proceso principal hace y por qué está en `app/`:
 - Deniega todos los permisos del navegador salvo `pointerLock` y `fullscreen`.
 - Una sola instancia. Dos copias pelearían por la misma partida guardada.
 
+`build.py` marca el bundle de escritorio con `window.ESCRITORIO = true`, y el
+juego lo mira en un sitio: la captura del ratón. En una pestaña, el navegador
+puede negarse a capturar el ratón, y para eso existe un modo de respaldo en el
+que la cámara persigue al cursor. En una ventana propia eso no puede pasar, así
+que ahí el respaldo no existe: al empezar la partida se toma el ratón y ya, sin
+avisos y sin pedir un clic de más.
+
 La partida se guarda en el `localStorage` del origen `game://`, que en un build
 empaquetado vive dentro de la carpeta de datos de usuario de la aplicación.
 
