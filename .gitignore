@@ -9,11 +9,11 @@
 dist/
 node_modules/
 
-# --- terceros vendorizados: los baja `npm run vendor` ---
-# three.js y las fuentes se copian desde node_modules / Google Fonts al
-# construir. Versionarlos duplicaria binarios que ya vienen del lockfile.
-vendor/three/
-vendor/fonts/
+# --- terceros vendorizados: los pone `npm run vendor` ---
+# three.js sale de node_modules (lo fija el lockfile) y las fuentes de
+# Google. Versionarlos duplicaria binarios que ya estan clavados en otro
+# sitio. La carpeta entera es generada.
+vendor/
 
 # --- Steamworks SDK: binarios de terceros, no son nuestros ---
 vendor/steam/**/*.dll
@@ -50,3 +50,6 @@ Desktop.ini
 npm-debug.log*
 *.tmp
 *.bak
+
+# --- salida de electron-builder ---
+release/

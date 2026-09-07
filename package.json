@@ -1,0 +1,68 @@
+{
+  "name": "pay-the-pinata",
+  "productName": "Party Tab",
+  "version": "0.1.0",
+  "description": "Juego 3D de punteria y deuda en el patio de una fiesta. Rompe pinatas por Dulces, paga las Cuentas antes de que venzan.",
+  "private": true,
+  "main": "app/main.js",
+  "author": "SASoft",
+  "license": "UNLICENSED",
+  "scripts": {
+    "vendor": "node tools/vendor.mjs",
+    "build": "npm run vendor && python build.py",
+    "start": "npm run build && electron .",
+    "test": "npm run build && node test/play.js",
+    "test:app": "npm run build && node test/electron.js",
+    "dist:win": "npm run build && electron-builder --win dir --x64 --config electron-builder.config.js",
+    "dist:installer": "npm run build && electron-builder --win nsis --x64 --config electron-builder.config.js"
+  },
+  "dependencies": {
+    "steamworks.js": "0.4.0"
+  },
+  "devDependencies": {
+    "electron": "44.2.0",
+    "electron-builder": "26.15.3",
+    "playwright": "1.63.0",
+    "three": "0.128.0"
+  },
+  "build": {
+    "appId": "com.sasoft.partytab",
+    "productName": "Party Tab",
+    "copyright": "SASoft",
+    "directories": {
+      "output": "release",
+      "buildResources": "app/assets"
+    },
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/steamworks.js/**"
+    ],
+    "files": [
+      "app/**",
+      "dist/app/**",
+      "package.json",
+      "!**/*.map",
+      "!steam_appid.txt",
+      "!**/node_modules/*/{test,__tests__,tests,example,examples,doc,docs}/**"
+    ],
+    "extraFiles": [
+      {
+        "from": "vendor/steam/win64/steam_api64.dll",
+        "to": "steam_api64.dll"
+      }
+    ],
+    "win": {
+      "icon": "app/assets/icon.ico",
+      "artifactName": "${productName}-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "shortcutName": "Party Tab"
+    },
+    "compression": "maximum",
+    "removePackageScripts": true,
+    "npmRebuild": true
+  }
+}
