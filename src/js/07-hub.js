@@ -165,7 +165,7 @@ const CHELO_RELAX = new THREE.Vector3(-3.6, 0, -7.6), CHELO_COLLECT = new THREE.
   // lawn chair + side table at the relaxing spot
   const ch = new THREE.Group(); ch.add(box(0.7, 0.05, 0.6, new THREE.MeshStandardMaterial({ map: stripeTexture(0x2ec4b6, 0xffffff) }), 0, 0.45, 0)); ch.add(box(0.7, 0.75, 0.05, new THREE.MeshStandardMaterial({ map: stripeTexture(0x2ec4b6, 0xffffff) }), 0, 0.8, -0.3)); [[-0.3, -0.25], [0.3, -0.25], [-0.3, 0.25], [0.3, 0.25]].forEach(([a, b]) => ch.add(box(0.04, 0.45, 0.04, flatMat(0xeee), a, 0.22, b))); ch.position.set(CHELO_RELAX.x + 0.9, 0, CHELO_RELAX.z - 0.2); ch.rotation.y = 0.4; yard.add(ch);
   const st = new THREE.Group(); st.add(cyl(0.3, 0.3, 0.04, flatMat(0xffffff), 0, 0.55, 0, 14)); st.add(cyl(0.03, 0.03, 0.55, flatMat(0xffffff), 0, 0.27, 0)); st.add(cyl(0.1, 0.09, 0.2, flatMat(0xffe28a), 0.1, 0.67, 0, 10)); st.position.set(CHELO_RELAX.x - 0.8, 0, CHELO_RELAX.z - 0.1); yard.add(st);
-  blockCircle(CHELO_RELAX.x, CHELO_RELAX.z, 1.4);
+  blockCircle(CHELO_RELAX.x, CHELO_RELAX.z, 1.05);   // 1.4 cerraba el paso entre ella y la piscina
 })();
 addStation({
   id: 'chelo', name: 'Tía Chelo', pos: CHELO_RELAX.clone(), radius: 2.1, signY: 3.0,
@@ -331,7 +331,7 @@ function updateHub(dt, t) {
   STATIONS.forEach(st => { const d = Math.hypot(st.pos.x - HUB.pos.x, st.pos.z - HUB.pos.z); if (d < st.radius && d < bestD) { best = st; bestD = d; } });
   if (best !== HUB.near) { HUB.near = best; holdStop(); }
   const pr = $('prompt');
-  if (best && HUB.mode === 'hub') { const lock = stationLocked(best); pr.innerHTML = lock ? `<span class="lock">${ico('lock', 16)} ${T(best.name)} — ${T(lock)}</span>` : best.id === 'firing' ? `<kbd>E</kbd> ${T('Hold to')} ${T(best.prompt())}<span class="hold"><i id="hold-bar"></i></span>` : `<kbd>E</kbd> ${T(best.prompt())}`; pr.classList.add('on'); }
+  if (best && HUB.mode === 'hub') { const lock = stationLocked(best); pr.innerHTML = lock ? `<span class="lock">${ico('lock', 16)} ${T(best.name)} — ${T(lock)}</span>` : best.id === 'firing' && A11Y.hold() ? `<kbd>E</kbd> ${T('Hold to')} ${T(best.prompt())}<span class="hold"><i id="hold-bar"></i></span>` : `<kbd>E</kbd> ${T(best.prompt())}`; pr.classList.add('on'); }
   else pr.classList.remove('on');
   updateHold(dt);
   // floor rings pulse; the one you're standing in lights up
@@ -390,12 +390,12 @@ let interactCooldownUntil = 0;
 function interact() {
   if (HUB.mode !== 'hub' || !HUB.near || performance.now() < interactCooldownUntil) return;
   const lock = stationLocked(HUB.near); if (lock) { toast(HUB.near.name + ': ' + lock.toLowerCase() + '.'); SFX.miss(); return; }
-  if (HUB.near.id === 'firing') { toast('Hold E to start the Run.'); return; }   // the firing line only starts on a held E
+  if (HUB.near.id === 'firing' && A11Y.hold()) { toast('Hold E to start the Run.'); return; }   // the firing line only starts on a held E — unless the player turned holding off
   SFX.open(); HUB.near.open();
 }
 // The firing line needs a held E (1.2 s) so a Run never starts by accident.
 const HOLD = { active: false, t: 0, need: 1.2 };
-function holdStart() { if (HUB.mode !== 'hub' || !HUB.near || HUB.near.id !== 'firing' || performance.now() < interactCooldownUntil) return false; HOLD.active = true; HOLD.t = 0; return true; }
+function holdStart() { if (!A11Y.hold() || HUB.mode !== 'hub' || !HUB.near || HUB.near.id !== 'firing' || performance.now() < interactCooldownUntil) return false; HOLD.active = true; HOLD.t = 0; return true; }
 function holdStop() { HOLD.active = false; HOLD.t = 0; const bar = $('hold-bar'); if (bar) bar.style.width = '0%'; }
 function updateHold(dt) {
   if (!HOLD.active) return;

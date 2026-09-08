@@ -5,19 +5,22 @@
   <!-- HUD -->
   <div id="hud">
     <div id="crosshair" data-reticle="dot"><span class="dot"></span><span class="ring"></span><span class="diamond"></span><span class="range"></span></div>
+    <div id="active-reload" hidden>
+      <div class="ar-track"><i class="ar-good"></i><i class="ar-perfect"></i><i class="ar-needle"></i></div>
+      <div class="ar-key"><kbd>R</kbd></div>
+    </div>
     <div id="top-left" class="hud-card"><div>Party <b id="hud-party">1</b> · Tier <b id="hud-tier">1</b></div><div>Run <b id="hud-run">1</b></div></div>
     <div id="timer-wrap" class="run-only"><div class="tlabel"><span data-i18n>Clock</span> <b id="timer">45.00 s</b></div><div id="timer-track"><i id="timer-fill"></i><i id="timer-gain"></i><i id="timer-pen"></i></div><div id="timer-bonus"></div></div>
     <div id="event-banner"></div>
     <div id="debt-banner"></div>
     <div id="glitter"></div>
     <div id="vignette"></div>
-    <div id="tut"></div>
+    <div id="tut" role="status" aria-live="polite"></div>
     <div id="achv"></div>
-    <div id="objective"></div>
+    <div id="objective" aria-live="polite"></div>
     <div id="candy-card" class="hud-card run-only">
       <div class="label" data-i18n>Run Candy</div>
       <div id="run-candy">0</div>
-      <div id="streak-line"><span data-i18n>Streak</span> <b id="streak-n">0</b> · ×<span id="streak-mult">1.0</span></div>
       <div id="cut-line">Tía Chelo takes <b id="cut-pct">10%</b></div>
       <div id="tab-progress"><div class="tp-l"><span id="tp-name">Next Tab</span><b id="tp-num">0 / 500</b></div><div class="tp-track"><i id="tp-bank"></i><i id="tp-run"></i></div></div>
     </div>
@@ -26,13 +29,17 @@
       <div class="label" data-i18n>Candy</div><div id="hub-candy">0</div>
       <div class="label" style="margin-top:6px" data-i18n>Keepsakes</div><div id="hub-keep">0</div>
     </div>
-    <div id="mag-card" class="hud-card run-only">
-      <div class="label" data-i18n>Mag</div>
-      <div id="mag-num">12</div>
-      <div id="mag-pips"></div>
-      <div id="reload-wrap"><i id="reload-bar"></i></div>
-      <div id="heat-wrap" hidden><span class="hl" data-i18n>Heat</span><span class="track"><i id="heat-bar"></i></span></div>
-      <div id="weapon-name">Carnival Pistol</div>
+    <div id="streak-card"><span class="sc-ic" data-icon="flame"></span><b id="streak-n">0</b><span class="sc-mult">×<span id="streak-mult">1.0</span></span></div>
+    <div id="left-stack">
+      <div id="mag-card" class="hud-card">
+        <div class="label" data-i18n>Mag</div>
+        <div id="mag-num">12</div>
+        <div id="mag-pips"></div>
+        <div id="reload-wrap"><i id="reload-bar"></i></div>
+        <div id="heat-wrap" hidden><span class="hl" data-i18n>Heat</span><span class="track"><i id="heat-bar"></i></span></div>
+        <div id="weapon-name">Carnival Pistol</div>
+        <div id="refund-line"><span class="rf-ic" data-icon="reload"></span><span class="rf-l" data-i18n>Round returns</span> <b id="refund-pct">35%</b></div>
+      </div>
     </div>
     <div id="wild-bar"></div>
     <div id="prompt"></div>
@@ -46,7 +53,7 @@
   <div id="title" class="screen on">
     <div class="bunting"></div>
     <div class="title-box">
-      <h1>PARTY<br>TAB</h1>
+      <h1>PAY THE<br>PIÑATA</h1>
       <div class="pitch" data-i18n>You threw the party. Now pay the tab.</div>
       <div class="sub" data-i18n>A short first-person shooter against the clock. Land the Sweet Spot and you get your Round back and a sliver of time. When the clock hits zero, the Run is over — and the Tabs are still due.</div>
       <div class="menu-cta"><button class="big-btn" id="btn-start" data-i18n>Start the party</button></div>
@@ -56,6 +63,7 @@
         <button class="menu-btn" id="btn-title-records"><span class="mb-ic" data-icon="chart"></span><span data-i18n>Records</span></button>
         <button class="menu-btn" id="btn-title-settings"><span class="mb-ic" data-icon="gear"></span><span data-i18n>Settings</span></button>
         <button class="menu-btn" id="btn-lang"><span class="mb-ic" data-icon="globe"></span><span id="lang-label">Español</span></button>
+        <button class="menu-btn danger" id="btn-quit" hidden><span class="mb-ic" data-icon="close"></span><span data-i18n>Quit</span></button>
       </nav>
       <div class="menu-foot">
         <span class="small" data-i18n>No animals were harmed. A lot of cardboard was.</span>
@@ -64,28 +72,10 @@
       <div id="wipe-confirm" hidden><p><b data-i18n>Are you sure?</b> <span data-i18n>All weapons, Charms, Keepsakes and Party progress will be permanently lost.</span></p><button class="big-btn danger" id="btn-wipe-yes" data-i18n>Yes, erase everything</button> <button class="menu-btn ghost" id="btn-wipe-no" data-i18n>No, keep my party</button></div>
     </div>
 
-    <!-- How to play overlay -->
-    <div id="how-to" class="how-panel" hidden>
-      <div class="how-card">
-        <div class="how-head"><h3 data-i18n>How to play</h3><button class="panel-close" id="how-close" aria-label="Close"><span class="small" data-i18n>Close · Esc</span></button></div>
-        <div class="controls">
-          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span data-i18n>Walk the Backyard (Shift to hurry)</span>
-          <span><kbd>Mouse</kbd></span><span data-i18n>Look around — the crosshair stays centred</span>
-          <span><kbd>E</kbd></span><span data-i18n>Use the Mailbox, the Candy Tree, the tables, the firing line</span>
-          <span><kbd>Space</kbd></span><span data-i18n>Hop</span>
-          <span><kbd>Click</kbd></span><span data-i18n>Shoot during a Run (spends 1 Round)</span>
-          <span><kbd>1</kbd>–<kbd>6</kbd></span><span data-i18n>Switch weapon — in the Backyard or mid-Run (once bought)</span>
-          <span><kbd>Q</kbd></span><span data-i18n>Confetti Burst (Wild Node)</span>
-          <span><kbd>Esc</kbd></span><span data-i18n>Close a panel / release the mouse</span>
-          <span><kbd>R</kbd> <kbd>Wheel</kbd></span><span data-i18n>Reload · cycle weapons — a gamepad works too</span>
-        </div>
-        <div class="how-goal" data-i18n>Break piñatas for Candy. Spend it on Tabs to climb Tiers, or on the Candy Tree to grow. Pay before a Tab comes due — or the Backer takes her cut.</div>
-      </div>
-    </div>
   </div>
 
   <!-- Station panel -->
-  <div id="panel" hidden>
+  <div id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" hidden>
     <div id="panel-box" class="panel-box">
       <header class="panel-head">
         <h2 id="panel-title">The Mailbox</h2>
@@ -100,7 +90,7 @@
   </div>
 
   <!-- Run over -->
-  <div id="runover">
+  <div id="runover" role="dialog" aria-modal="true">
     <div class="ro-box">
       <div class="bunting"></div>
       <h2 class="ro-title">Run 1 over</h2>
@@ -114,23 +104,39 @@
   </div>
 
   <!-- Pause (mouse released) -->
-  <div id="pause"><div class="pause-box">
-    <h2 data-i18n>Paused</h2>
+  <div id="pause" role="dialog" aria-modal="true" aria-labelledby="pause-title"><div class="pause-box">
+    <h2 id="pause-title" data-i18n>Paused</h2>
     <div class="pause-menu">
       <button class="big-btn" id="btn-resume" data-i18n>Resume</button>
       <button class="menu-btn" id="btn-settings" data-i18n>Settings</button>
+      <button class="menu-btn" id="btn-how" data-i18n>How to play</button>
       <button class="menu-btn" id="btn-records" data-i18n>Records &amp; achievements</button>
       <button class="menu-btn" id="btn-to-yard" hidden>End the Run early</button>
       <button class="menu-btn danger" id="btn-to-title" data-i18n>Return to Main Menu</button>
     </div>
     <div id="settings" hidden>
+      <h3 class="set-h" data-i18n>Controls</h3>
       <label class="set-row"><span><span data-i18n>Mouse sensitivity</span> <small data-i18n>Valorant scale</small></span><input type="range" id="set-sens" min="0.05" max="2" step="0.01" value="0.3"><b id="set-sens-v">0.30</b></label>
       <label class="set-row"><span data-i18n>Exact value</span><input type="number" id="set-sens-num" min="0.05" max="2" step="0.01" value="0.3"><b></b></label>
       <label class="set-row"><span><span data-i18n>Mouse DPI</span> <small data-i18n>for the readout</small></span><input type="number" id="set-dpi" min="100" max="32000" step="50" value="800"><b></b></label>
       <div class="small" id="set-sens-info"></div>
+      <label class="set-row"><span data-i18n>Invert vertical look</span><input type="checkbox" id="set-inverty"><b id="set-inverty-v">off</b></label>
+      <label class="set-row"><span><span data-i18n>Field of view</span> <small data-i18n>horizontal, on a 16:9 screen</small></span><input type="range" id="set-fov" min="80" max="120" step="1" value="103"><b id="set-fov-v">103°</b></label>
+      <label class="set-row"><span><span data-i18n>Hold E to start a Run</span> <small data-i18n>off: one press is enough</small></span><input type="checkbox" id="set-hold" checked><b id="set-hold-v">on</b></label>
+
+      <h3 class="set-h" data-i18n>Sound</h3>
       <label class="set-row"><span data-i18n>Music volume</span><input type="range" id="set-music" min="0" max="1" step="0.05" value="0.5"><b id="set-music-v">50%</b></label>
       <label class="set-row"><span data-i18n>Effects volume</span><input type="range" id="set-sfx" min="0" max="1" step="0.05" value="0.8"><b id="set-sfx-v">80%</b></label>
       <label class="set-row"><span><span data-i18n>Sound</span> <small data-i18n>M toggles</small></span><input type="checkbox" id="set-sound" checked><b id="set-sound-v">on</b></label>
+
+      <h3 class="set-h" data-i18n>Accessibility</h3>
+      <label class="set-row"><span><span data-i18n>Aim assist</span> <small data-i18n>a wider hit window around the Sweet Spot</small></span><select id="set-assist"><option value="0" data-i18n>Off</option><option value="1" data-i18n>Normal</option><option value="2" data-i18n>Generous</option></select><b></b></label>
+      <label class="set-row"><span><span data-i18n>Active reload</span> <small data-i18n>press R again on the beat for an instant reload</small></span><select id="set-ar"><option value="1" data-i18n>Normal</option><option value="2" data-i18n>Wide window</option><option value="0" data-i18n>Off</option></select><b></b></label>
+      <label class="set-row"><span><span data-i18n>Screen shake</span> <small data-i18n>0% holds the camera perfectly still</small></span><input type="range" id="set-shake" min="0" max="1" step="0.05" value="1"><b id="set-shake-v">100%</b></label>
+      <label class="set-row"><span><span data-i18n>Reduce flashes</span> <small data-i18n>softens full-screen flashes and pulsing</small></span><input type="checkbox" id="set-flash"><b id="set-flash-v">off</b></label>
+      <label class="set-row"><span data-i18n>Crosshair colour</span><select id="set-xh"><option value="" data-i18n>Default</option><option value="white" data-i18n>White</option><option value="yellow" data-i18n>Yellow</option><option value="cyan" data-i18n>Cyan</option><option value="green" data-i18n>Green</option><option value="magenta" data-i18n>Magenta</option><option value="black" data-i18n>Black</option></select><b></b></label>
+      <label class="set-row"><span data-i18n>Crosshair size</span><input type="range" id="set-xhs" min="0.6" max="2.2" step="0.1" value="1"><b id="set-xhs-v">1.0×</b></label>
+      <label class="set-row"><span><span data-i18n>Larger HUD text</span> <small data-i18n>bigger prompts, hints and counters</small></span><input type="checkbox" id="set-bigui"><b id="set-bigui-v">off</b></label>
       <label class="set-row"><span data-i18n>Tutorial hints</span><input type="checkbox" id="set-tut" checked><b id="set-tut-v">on</b></label>
       <label class="set-row"><span data-i18n>Language</span><select id="set-lang"><option value="en">English</option><option value="es">Español</option></select><b></b></label>
       <button class="link-btn" id="btn-settings-back" data-i18n>← back</button>
@@ -141,13 +147,35 @@
   <!-- Credits -->
   <div id="credits" class="screen">
     <div class="roll">
-      <h1>PARTY TAB</h1>
+      <h1>PAY THE PIÑATA</h1>
       <p id="credits-text"></p>
       <p>No Tabs left. The Backyard is quiet. Somewhere, Aunt Rosa is telling everyone you paid.</p>
       <p class="small">Cardboard, crepe paper, and sugar. No animals were harmed.</p>
       <button class="big-btn" id="btn-credits-done">Throw another party</button>
     </div>
   </div>
+  <!-- How to play: fuera de toda pantalla, para poder abrirlo tambien desde la pausa -->
+  <div id="how-to" class="how-panel" role="dialog" aria-modal="true" aria-labelledby="how-title" hidden>
+    <div class="how-card">
+      <div class="how-head"><h3 id="how-title" data-i18n>How to play</h3><button class="panel-close" id="how-close" aria-label="Close"><span class="small" data-i18n>Close · Esc</span></button></div>
+      <div class="controls">
+        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span data-i18n>Walk the Backyard (Shift to hurry)</span>
+        <span><kbd>Mouse</kbd></span><span data-i18n>Look around — the crosshair stays centred</span>
+        <span><kbd>E</kbd></span><span data-i18n>Use the Mailbox, the Candy Tree, the tables, the firing line</span>
+        <span><kbd>Space</kbd></span><span data-i18n>Hop</span>
+        <span><kbd>Click</kbd></span><span data-i18n>Shoot during a Run (spends 1 Round)</span>
+        <span><kbd>1</kbd>–<kbd>6</kbd></span><span data-i18n>Switch weapon — in the Backyard or mid-Run (once bought)</span>
+        <span><kbd>Q</kbd></span><span data-i18n>Confetti Burst (Wild Node)</span>
+        <span><kbd>Esc</kbd></span><span data-i18n>Close a panel / release the mouse</span>
+        <span><kbd>R</kbd> <kbd>Wheel</kbd></span><span data-i18n>Reload · cycle weapons — a gamepad works too</span>
+        <span><kbd>R</kbd> <kbd>R</kbd></span><span data-i18n>Reload, then hit R again as the needle crosses the lit band under the crosshair: the Mag refills on the spot</span>
+        <span><kbd>M</kbd></span><span data-i18n>Mute · unmute the game</span>
+        <span><kbd>F11</kbd></span><span data-i18n>Full screen</span>
+      </div>
+      <div class="how-goal" data-i18n>Break piñatas for Candy. Spend it on Tabs to climb Tiers, or on the Candy Tree to grow. Pay before a Tab comes due — or the Backer takes her cut.</div>
+      <p class="how-a11y small"><span data-i18n>Aim assist, screen shake, crosshair colour and size, reduced flashes and larger HUD text all live in</span> <b data-i18n>Settings → Accessibility</b>.</p>
+    </div>
+  </div>
 
-  <div id="toast"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
 </div>

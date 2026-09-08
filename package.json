@@ -1,6 +1,6 @@
 {
   "name": "pay-the-pinata",
-  "productName": "Party Tab",
+  "productName": "Pay the Piñata",
   "version": "0.1.0",
   "description": "Juego 3D de punteria y deuda en el patio de una fiesta. Rompe pinatas por Dulces, paga las Cuentas antes de que venzan.",
   "private": true,
@@ -27,8 +27,8 @@
     "three": "0.128.0"
   },
   "build": {
-    "appId": "com.sasoft.partytab",
-    "productName": "Party Tab",
+    "appId": "com.sasoft.paythepinata",
+    "productName": "Pay the Piñata",
     "copyright": "SASoft",
     "directories": {
       "output": "release",
@@ -54,13 +54,13 @@
     ],
     "win": {
       "icon": "app/assets/icon.ico",
-      "artifactName": "${productName}-${version}.${ext}"
+      "artifactName": "Pay-the-Pinata-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "perMachine": false,
-      "shortcutName": "Party Tab"
+      "shortcutName": "Pay the Piñata"
     },
     "compression": "maximum",
     "removePackageScripts": true,

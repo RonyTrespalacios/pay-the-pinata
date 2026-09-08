@@ -396,7 +396,7 @@ function selectNode(n) {
 function tryBuy(n) { if (buyNode(n)) { SFX.buy(); toast(es(`${T(n.name)} → rank ${rank(n.id)}`, `${T(n.name)} → rango ${rank(n.id)}`)); $('panel-candy').textContent = fmt(S.party.candy); renderTree(); renderNodeCard(n); refreshHub(); } }
 function statSnapshot() {
   return {
-    'Run clock': D.runTime() + ' s', 'Starting Mag': D.magCapacity() + ' Rounds', 'Sweet Hit refund': D.sweetRefund() + (D.sweetRefund() === 1 ? ' Round' : ' Rounds'), 'Crit refund': D.critRefund() + ' Rounds',
+    'Run clock': D.runTime() + ' s', 'Starting Mag': D.magCapacity() + ' Rounds', 'Round given back on a Sweet Hit': Math.round(D.refundChance() * 100) + '%', 'Round given back on a Crit': Math.round(D.critRefundChance() * 100) + '% · ' + D.critRefund() + ' Rounds',
     'Grace': D.grace() + (D.grace() === 1 ? ' Miss' : ' Misses'), 'Free First Round': D.freeFirst() ? 'yes' : 'no', 'Damage': '×' + D.damageMult().toFixed(2),
     'Spillover rate': Math.round(D.spillRate() * 100) + '%', 'Punch-Through': D.punch() + (D.punch() === 1 ? ' Layer' : ' Layers'), 'Pierce': D.pierce() ? 'yes' : 'no',
     'Classic Candy': '×' + D.candyMult('A').toFixed(2), 'Nesting Candy': '×' + D.candyMult('B').toFixed(2), 'Sugar Glass Candy': '×' + D.candyMult('C').toFixed(2), 'Clockwork Candy': '×' + D.candyMult('D').toFixed(2),

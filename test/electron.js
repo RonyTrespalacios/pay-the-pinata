@@ -10,7 +10,7 @@
 // una ventana en blanco.
 //
 //   node test/electron.js                      -> el codigo fuente, sin empaquetar
-//   node test/electron.js "release/win-unpacked/Party Tab.exe"
+//   node test/electron.js "release/win-unpacked/Pay the Piñata.exe"
 //                                              -> el .exe ya empaquetado
 //
 // La segunda forma es la que importa antes de subir nada: lo que se prueba sin

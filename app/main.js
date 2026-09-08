@@ -37,6 +37,24 @@ app.commandLine.appendSwitch('in-process-gpu');
 app.commandLine.appendSwitch('disable-direct-composition');
 
 /* ---------------------------------------------------------
+   El User-Agent, en ASCII.
+
+   Electron construye el User-Agent por defecto metiendo dentro el nombre del
+   producto, y el nuestro lleva enye: "Pay the Piñata". Una cabecera HTTP solo
+   admite Latin-1, asi que en cuanto algo vuelve a montar las cabeceras — y
+   onHeadersReceived, mas abajo, las monta en cada respuesta — la enye revienta
+   la conversion, el servicio de red se cae y TODO subrecurso del juego falla
+   con ERR_UNEXPECTED: ni CSS, ni three.js, ni el propio juego. Solo carga el
+   index.html, y la ventana se queda en una pantalla muerta.
+
+   No se arregla quitandole la enye al nombre — el jugador ve ese nombre en la
+   barra de titulo y en el menu de inicio. Se arregla aqui: se descompone el
+   texto y se tira todo lo que no sea ASCII imprimible, con lo que la enye pasa
+   a ser una n corriente y el User-Agent queda "Pay the Pinata/0.1.0".
+   --------------------------------------------------------- */
+app.userAgentFallback = app.userAgentFallback.normalize('NFD').replace(/[^ -~]/g, '');
+
+/* ---------------------------------------------------------
    2. Esquema propio.
 
    El juego se sirve por juego://app/ en vez de por file://. La razon es

@@ -33,7 +33,7 @@ function setMouseMode(on) {
 const PAUSE = { on: false };
 function setPaused(on) {
   PAUSE.on = on; $('pause').classList.toggle('on', on); document.body.classList.toggle('menu', on); if (on) holdStop();
-  if (on) { $('settings').hidden = true; document.querySelector('.pause-menu').hidden = false; $('btn-to-title').hidden = HUB.mode === 'title'; $('btn-resume').textContent = T(HUB.mode === 'title' ? 'Close' : 'Resume'); $('btn-to-yard').hidden = HUB.mode !== 'run'; $('btn-to-yard').textContent = es('End the Run early (bank ' + fmt(RUN.runCandy) + ' Candy)', 'Terminar la Ronda ya (guardar ' + fmt(RUN.runCandy) + ' Dulces)'); syncSettingsUI(); }
+  if (on) { $('settings').hidden = true; document.querySelector('.pause-menu').hidden = false; $('btn-to-title').hidden = HUB.mode === 'title'; $('btn-resume').textContent = T(HUB.mode === 'title' ? 'Close' : 'Resume'); $('btn-to-yard').hidden = HUB.mode !== 'run'; $('btn-to-yard').textContent = es('End the Run early (bank ' + fmt(RUN.runCandy) + ' Candy)', 'Terminar la Ronda ya (guardar ' + fmt(RUN.runCandy) + ' Dulces)'); syncSettingsUI(); $('btn-resume').focus(); }
 }
 function resumeGame() { if (aim.mouseMode || HUB.mode === 'title') setPaused(false); else tryPointerLock(); }
 // Coming back to the world after closing a panel or the Run summary. In a tab the pause menu has
@@ -48,22 +48,35 @@ function syncSettingsUI() {
   $('set-sound').checked = !S.perm.muted; $('set-sound-v').textContent = S.perm.muted ? es('off', 'no') : es('on', 'sí');
   const mv = S.perm.musicVol == null ? 0.5 : S.perm.musicVol, sv = S.perm.sfxVol == null ? 0.8 : S.perm.sfxVol; $('set-music').value = mv; $('set-music-v').textContent = Math.round(mv * 100) + '%'; $('set-sfx').value = sv; $('set-sfx-v').textContent = Math.round(sv * 100) + '%';
   $('set-tut').checked = !S.perm.tutOff; $('set-tut-v').textContent = S.perm.tutOff ? es('off', 'no') : es('on', 'sí');
+  $('set-inverty').checked = !!S.perm.invertY; syncFlag('set-inverty', !!S.perm.invertY);
+  $('set-fov').value = A11Y.fovH(); $('set-fov-v').textContent = A11Y.fovH() + '°';
+  $('set-hold').checked = A11Y.hold(); syncFlag('set-hold', A11Y.hold());
+  $('set-assist').value = String(S.perm.assist | 0);
+  $('set-ar').value = String(S.perm.activeReload == null ? 1 : S.perm.activeReload | 0);
+  $('set-shake').value = A11Y.shake(); $('set-shake-v').textContent = Math.round(A11Y.shake() * 100) + '%';
+  $('set-flash').checked = !!S.perm.flashSafe; syncFlag('set-flash', !!S.perm.flashSafe);
+  $('set-xh').value = S.perm.xhColor || 'white';
+  const xs = S.perm.xhScale || 1; $('set-xhs').value = xs; $('set-xhs-v').textContent = xs.toFixed(1) + '×';
+  $('set-bigui').checked = !!S.perm.bigUI; syncFlag('set-bigui', !!S.perm.bigUI);
 }
+// El "on/off" a la derecha de cada casilla, en el idioma del juego.
+function syncFlag(id, on) { const b = $(id + '-v'); if (b) b.textContent = on ? es('on', 'sí') : es('off', 'no'); }
 $('btn-resume').onclick = e => { e.stopPropagation(); resumeGame(); };
 $('btn-records').onclick = e => { e.stopPropagation(); setPaused(false); if (HUB.mode === 'run') return; openPanel('records'); };
 $('btn-title-records').onclick = () => openPanel('records');
-$('btn-title-how').onclick = () => { $('how-to').hidden = false; };
+$('btn-title-how').onclick = () => { $('how-to').hidden = false; $('how-close').focus(); };
+$('btn-how').onclick = e => { e.stopPropagation(); $('how-to').hidden = false; $('how-close').focus(); };
 $('how-close').onclick = () => { $('how-to').hidden = true; };
 $('how-to').addEventListener('click', e => { if (e.target === $('how-to')) $('how-to').hidden = true; });
 // menu-button icons (SVG, not emoji)
-document.querySelectorAll('.mb-ic[data-icon]').forEach(e => { e.innerHTML = ico(e.dataset.icon, 16); });
+document.querySelectorAll('[data-icon]').forEach(e => { e.innerHTML = ico(e.dataset.icon, e.classList.contains('sc-ic') ? 38 : e.classList.contains('rf-ic') ? 14 : 16); });
 $('btn-settings').onclick = e => { e.stopPropagation(); $('settings').hidden = false; document.querySelector('.pause-menu').hidden = true; };
 $('btn-settings-back').onclick = e => { e.stopPropagation(); $('settings').hidden = true; document.querySelector('.pause-menu').hidden = false; };
 function sensV() { const v = S.perm.sensV; return (typeof v === 'number' && v > 0) ? v : BAL.sens_default; }
 function radPerCount() { return sensV() * BAL.sens_deg_per_count * Math.PI / 180; }
 function setSens(v) { v = Math.min(BAL.sens_max, Math.max(BAL.sens_min, Math.round(v * 100) / 100)); S.perm.sensV = v; $('set-sens').value = v; $('set-sens-v').textContent = v.toFixed(2); $('set-sens-num').value = v.toFixed(2); updateSensInfo(); saveGame(); }
-function updateSensInfo() { const dpi = S.perm.dpi || 800; const cm = 360 / (sensV() * BAL.sens_deg_per_count * dpi) * 2.54; $('set-sens-info').textContent = `eDPI ${Math.round(sensV() * dpi)} · ${cm.toFixed(1)} cm / 360° ${es('at','a')} ${dpi} DPI · ${es('103° horizontal FOV','103° FOV horizontal')}`; }
-function setLang(l) { LANG.cur = l; S.perm.lang = l; saveGame(); applyLang(); $('set-lang').value = l; $('lang-label').textContent = l === 'es' ? 'English' : 'Español'; STATIONS.forEach(st => st.signKey = ''); refreshSigns(); if (typeof updateTreeSign === 'function') updateTreeSign(); if (HUB.mode !== 'title') refreshHub(); if (PANEL.kind) renderPanel(); if (typeof TUT !== 'undefined' && TUT.step) tutSet(TUT.step); boot.refreshTitle && boot.refreshTitle(); updateHubHUD(); }
+function updateSensInfo() { const dpi = S.perm.dpi || 800; const cm = 360 / (sensV() * BAL.sens_deg_per_count * dpi) * 2.54; $('set-sens-info').textContent = `eDPI ${Math.round(sensV() * dpi)} · ${cm.toFixed(1)} cm / 360° ${es('at','a')} ${dpi} DPI · ${A11Y.fovH()}${es('° horizontal FOV','° FOV horizontal')}`; }
+function setLang(l) { LANG.cur = l; S.perm.lang = l; saveGame(); applyLang(); $('set-lang').value = l; $('lang-label').textContent = l === 'es' ? 'English' : 'Español'; STATIONS.forEach(st => st.signKey = ''); refreshSigns(); if (typeof updateTreeSign === 'function') updateTreeSign(); if (HUB.mode !== 'title') refreshHub(); if (PANEL.kind) renderPanel(); if (typeof TUT !== 'undefined' && TUT.step) tutSet(TUT.step); boot.refreshTitle && boot.refreshTitle(); updateHubHUD(); syncSettingsUI(); }
 $('set-lang').onchange = e => setLang(e.target.value);
 $('btn-lang').onclick = () => setLang(LANG.cur === 'es' ? 'en' : 'es');
 $('set-sens').oninput = e => setSens(parseFloat(e.target.value));
@@ -73,6 +86,17 @@ $('set-sound').onchange = e => { S.perm.muted = !e.target.checked; $('set-sound-
 $('set-music').oninput = e => { S.perm.musicVol = parseFloat(e.target.value); $('set-music-v').textContent = Math.round(S.perm.musicVol * 100) + '%'; applyMusicVolume(); saveGame(); };
 $('set-sfx').oninput = e => { S.perm.sfxVol = parseFloat(e.target.value); $('set-sfx-v').textContent = Math.round(S.perm.sfxVol * 100) + '%'; if (AUDIO.sfx) AUDIO.sfx.gain.value = S.perm.sfxVol; beep(660, 0.05, 'triangle', 0.08); saveGame(); };
 $('set-tut').onchange = e => { S.perm.tutOff = !e.target.checked; $('set-tut-v').textContent = S.perm.tutOff ? es('off', 'no') : es('on', 'sí'); if (S.perm.tutOff) tutSkip(); saveGame(); };
+// ---- accesibilidad: cada mando escribe en S.perm, aplica y guarda ----
+$('set-inverty').onchange = e => { S.perm.invertY = e.target.checked; syncFlag('set-inverty', S.perm.invertY); saveGame(); };
+$('set-fov').oninput = e => { S.perm.fovH = parseInt(e.target.value, 10) || BAL.fov_h_default; $('set-fov-v').textContent = A11Y.fovH() + '°'; applyA11y(); updateSensInfo(); saveGame(); };
+$('set-hold').onchange = e => { S.perm.holdToStart = e.target.checked; syncFlag('set-hold', S.perm.holdToStart); holdStop(); saveGame(); };
+$('set-assist').onchange = e => { S.perm.assist = parseInt(e.target.value, 10) || 0; saveGame(); };
+$('set-ar').onchange = e => { S.perm.activeReload = parseInt(e.target.value, 10) || 0; if (typeof RUN !== 'undefined' && RUN.reloading) { RUN.arOn = S.perm.activeReload !== 0 && !RUN.arDone && RUN.reloadDur >= BAL.active_reload.min_dur; RUN.arOn ? arShow() : arHide(); } saveGame(); };
+$('set-shake').oninput = e => { S.perm.shake = parseFloat(e.target.value); $('set-shake-v').textContent = Math.round(S.perm.shake * 100) + '%'; applyA11y(); saveGame(); };
+$('set-flash').onchange = e => { S.perm.flashSafe = e.target.checked; syncFlag('set-flash', S.perm.flashSafe); applyA11y(); saveGame(); };
+$('set-xh').onchange = e => { S.perm.xhColor = e.target.value; applyA11y(); saveGame(); };
+$('set-xhs').oninput = e => { S.perm.xhScale = parseFloat(e.target.value); $('set-xhs-v').textContent = S.perm.xhScale.toFixed(1) + '×'; applyA11y(); saveGame(); };
+$('set-bigui').onchange = e => { S.perm.bigUI = e.target.checked; syncFlag('set-bigui', S.perm.bigUI); applyA11y(); saveGame(); };
 $('btn-to-yard').onclick = e => { e.stopPropagation(); if (HUB.mode !== 'run') return; setPaused(false); RUN.timeLeft = 0; RUN.endingAt = RUN.timeInRun + 0.01; RUN.encoreUsed = true; };
 $('btn-to-title').onclick = e => {
   e.stopPropagation(); setPaused(false);
@@ -107,14 +131,14 @@ canvas.addEventListener('mousemove', e => {
   if (aim.locked) {
     const k = radPerCount();   // Valorant yaw: counts × sens × 0.0705°, straight onto the camera — no smoothing, no lag
     look.tYaw = THREE.MathUtils.clamp(look.tYaw - e.movementX * k, -yawLimit(), yawLimit());
-    look.tPitch = THREE.MathUtils.clamp(look.tPitch - e.movementY * k, PITCH_MIN, PITCH_MAX);
+    look.tPitch = THREE.MathUtils.clamp(look.tPitch - e.movementY * k * A11Y.invertY(), PITCH_MIN, PITCH_MAX);
     look.yaw = look.tYaw; look.pitch = look.tPitch;
   } else if (aim.mouseMode && inWorld()) {
     // fallback only (capture refused by the page): raw mouse deltas, unbounded — plus a slow auto-turn when the pointer
     // rests against the screen edge, so a full 360° never gets stuck
     const k = radPerCount();
     look.tYaw = THREE.MathUtils.clamp(look.tYaw - e.movementX * k, -yawLimit(), yawLimit());
-    look.tPitch = THREE.MathUtils.clamp(look.tPitch - e.movementY * k, PITCH_MIN, PITCH_MAX);
+    look.tPitch = THREE.MathUtils.clamp(look.tPitch - e.movementY * k * A11Y.invertY(), PITCH_MIN, PITCH_MAX);
     look.yaw = look.tYaw; look.pitch = look.tPitch;
     const ex = e.clientX / window.innerWidth; HUB.edgeTurn = ex < 0.03 ? 1 : ex > 0.97 ? -1 : 0;
   }
@@ -146,7 +170,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Space' && !e.repeat) { if (HUB.mode === 'hub') { jump(); e.preventDefault(); } }
   { const n = parseInt(e.key, 10); if (n >= 1 && n <= WEAPONS.length && (HUB.mode === 'hub' || HUB.mode === 'run')) equipWeapon(n); }
   if (e.code === 'KeyM') { S.perm.muted = !S.perm.muted; applyMusicVolume(); saveGame(); toast(S.perm.muted ? 'Muted' : 'Sound on'); }
-  if (e.code === 'KeyR' && HUB.mode === 'run') manualReload();
+  if (e.code === 'KeyR' && !e.repeat && HUB.mode === 'run') { if (!activeReload()) manualReload(); }   // durante una recarga, R es el minijuego
   if (HUB.mode === 'run') {
     if (e.code === 'KeyQ') confettiBurst(RUN.timeInRun);
   }
@@ -169,14 +193,14 @@ function pollGamepad(dt) {
   const dz = v => Math.abs(v) < 0.18 ? 0 : (v - Math.sign(v) * 0.18) / 0.82;
   const ax = gp.axes; PAD.x = dz(ax[0] || 0); PAD.y = dz(ax[1] || 0);
   const rx = dz(ax[2] || 0), ry = dz(ax[3] || 0); const sens = 2.6 * (0.6 + sensV());
-  if (inWorld() && !PAUSE.on && !PANEL.kind && (rx || ry)) { look.tYaw = THREE.MathUtils.clamp(look.tYaw - rx * Math.abs(rx) * sens * dt, -yawLimit(), yawLimit()); look.tPitch = THREE.MathUtils.clamp(look.tPitch - ry * Math.abs(ry) * sens * 0.8 * dt, PITCH_MIN, PITCH_MAX); look.yaw = look.tYaw; look.pitch = look.tPitch; }
+  if (inWorld() && !PAUSE.on && !PANEL.kind && (rx || ry)) { look.tYaw = THREE.MathUtils.clamp(look.tYaw - rx * Math.abs(rx) * sens * dt, -yawLimit(), yawLimit()); look.tPitch = THREE.MathUtils.clamp(look.tPitch - ry * Math.abs(ry) * sens * 0.8 * dt * A11Y.invertY(), PITCH_MIN, PITCH_MAX); look.yaw = look.tYaw; look.pitch = look.tPitch; }
   const b = i => !!(gp.buttons[i] && (gp.buttons[i].pressed || gp.buttons[i].value > 0.5)); const was = PAD.prev; const now = {};
   [0, 1, 2, 3, 4, 5, 7, 9].forEach(i => now[i] = b(i));
   const pressed = i => now[i] && !was[i], released = i => !now[i] && was[i];
   if (pressed(9)) { if (PAUSE.on) resumeGame(); else if (PANEL.kind) closePanel(); else if (HUB.mode === 'runover') closeRunOver(); else if (inWorld()) setPaused(true); }
   if (pressed(1)) { if (PANEL.kind) closePanel(); else if (HUB.mode === 'runover') closeRunOver(); else if (PAUSE.on) resumeGame(); }
   if (!PAUSE.on && !PANEL.kind) {
-    if (HUB.mode === 'run') { if (now[7]) { if (!was[7]) { aim.firing = true; RUN.holdT = 0; } shoot(RUN.timeInRun); } else if (released(7)) aim.firing = false; if (pressed(2)) manualReload(); if (pressed(0)) confettiBurst(RUN.timeInRun); }
+    if (HUB.mode === 'run') { if (now[7]) { if (!was[7]) { aim.firing = true; RUN.holdT = 0; } shoot(RUN.timeInRun); } else if (released(7)) aim.firing = false; if (pressed(2)) { if (!activeReload()) manualReload(); } if (pressed(0)) confettiBurst(RUN.timeInRun); }
     else if (HUB.mode === 'hub') { if (pressed(0)) { if (!holdStart()) interact(); } if (released(0)) holdStop(); if (pressed(3)) jump(); if (now[7] && !was[7]) practiceShoot(elapsed); }
     else if (HUB.mode === 'runover' && pressed(0)) closeRunOver();
     if (pressed(4) || pressed(5)) { const owned = WEAPONS.map((w, i) => i + 1).filter(n => D.weaponUnlocked(WEAPONS[n - 1].id)); if (owned.length > 1 && inWorld()) { const cur = WEAPONS.findIndex(w => w.id === S.party.weapon) + 1; let i = owned.indexOf(cur); i = (i + (pressed(5) ? 1 : -1) + owned.length) % owned.length; equipWeapon(owned[i]); } }
@@ -194,7 +218,7 @@ function frame() {
   if (PAUSE.on) { renderer.render(scene, camera); return; }   // paused: the Backyard holds still
   // juice: a few frames of hit-stop on a Sweet Hit, and a shake that decays
   if (JUICE.hitStop > 0) { JUICE.hitStop -= dt; renderer.render(scene, camera); return; }
-  if (JUICE.shake > 0) { const k = JUICE.shake * 0.02; camera.rotation.x += (Math.random() - 0.5) * k; camera.rotation.y += (Math.random() - 0.5) * k; camera.rotation.z += (Math.random() - 0.5) * k * 0.5; JUICE.shake = Math.max(0, JUICE.shake - dt * 3); }
+  if (JUICE.shake > 0) { const k = JUICE.shake * 0.02 * A11Y.shake(); camera.rotation.x += (Math.random() - 0.5) * k; camera.rotation.y += (Math.random() - 0.5) * k; camera.rotation.z += (Math.random() - 0.5) * k * 0.5; JUICE.shake = Math.max(0, JUICE.shake - dt * 3); }
   updateParticles(dt); updateTutorial(dt, elapsed);
   if (HUB.mode === 'run') { updateGun(dt, elapsed, false); updateRun(dt, elapsed); updateBacker(dt, elapsed); }
   else {
@@ -214,6 +238,7 @@ function boot() {
   LANG.cur = S.perm.lang || ((navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en'); applyLang(); $('set-lang').value = LANG.cur; $('lang-label').textContent = LANG.cur === 'es' ? 'English' : 'Español';
   boot.refreshTitle();
   S.perm.aimMode = 'lock';   // free look was removed as an option; old saves that had it on come back to captured mouse
+  applyA11y();
   growBackyard(1); for (let i = 0; i < 6; i++) spawnHanging();
   buildGun(D.weapon()); setReticle(D.weapon());
   HUB.pos.set(0, 0, 4.6); camera.position.set(0, EYE, 4.6);
@@ -237,5 +262,9 @@ $('btn-wipe').onclick = () => { $('wipe-confirm').hidden = false; };
 $('btn-wipe-no').onclick = () => { $('wipe-confirm').hidden = true; };
 $('btn-wipe-yes').onclick = () => { if (!confirm('Last chance — erase every Party, Charm and Keepsake?')) return; wipeSave(); applyStartOfPartyCharms(); location.reload(); };
 $('btn-title-settings').onclick = () => { setPaused(true); $('settings').hidden = false; document.querySelector('.pause-menu').hidden = true; };
+// Salir del juego. Solo en el ejecutable: en una pestaña del navegador window.close() no cierra
+// nada que no haya abierto un script, asi que el boton seria un boton que no hace nada.
+// La partida se guarda en cada cambio, asi que salir aqui no pierde nada y no hace falta preguntar.
+if (ESCRITORIO) { $('btn-quit').hidden = false; $('btn-quit').onclick = () => window.close(); }
 
 boot();

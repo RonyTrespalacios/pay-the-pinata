@@ -160,15 +160,49 @@ function makeCloud(x, y, z, s) { const g = new THREE.Group(); const m = new THRE
   blockRect(12.2 - 7.55, 0.5 - 2.95, 12.2 - 7.45, 0.5 - 0.75); blockRect(12.2 - 7.55, 0.5 + 0.75, 12.2 - 7.45, 0.5 + 2.95);   // rail segments
   blockCircle(12.2 - 7.5, 0.5 - 2.9, 0.15); blockCircle(12.2 - 7.5, 0.5 + 2.9, 0.15);
   window.PORCH = { x0: 12.2 - 7.6, x1: 12.2 - 5.0, z0: 0.5 - 3.1, z1: 0.5 + 3.1, y: 0.25 };
-  // empty pool with ladder and a lonely inflatable
+  // La piscina de la fiesta: desmontable, de las de montar sobre el cesped.
+  //
+  // Aqui habia una piscina HUNDIDA tapada por una losa entera a ras de suelo, y desde fuera era
+  // un rectangulo crema y nada mas — un trozo de patio en blanco que ademas cerraba el paso entre
+  // la Tia y la valla. Hundida no se puede enseñar: el cesped es un unico plano macizo, asi que
+  // por el agujero se ve el propio cesped, no el fondo. Puesta POR ENCIMA se ve entera, tiene
+  // bulto, y lo que hay dentro cuenta la fiesta que lleva horas pasando.
   const pool = new THREE.Group();
-  pool.add(box(7, 0.15, 4, flatMat(0x8fd0e6), 0, -1.35, 0));
-  const wallMat = flatMat(0xcdeef7);
-  pool.add(box(7, 1.4, 0.2, wallMat, 0, -0.65, -2)); pool.add(box(7, 1.4, 0.2, wallMat, 0, -0.65, 2)); pool.add(box(0.2, 1.4, 4, wallMat, -3.5, -0.65, 0)); pool.add(box(0.2, 1.4, 4, wallMat, 3.5, -0.65, 0));
-  pool.add(box(7.8, 0.1, 4.8, flatMat(0xe9e1d2), 0, 0.03, 0));
-  const lad = flatMat(0xdddddd, { metalness: 0.6, roughness: 0.3 }); pool.add(cyl(0.03, 0.03, 1.6, lad, 3.4, -0.4, 0.3)); pool.add(cyl(0.03, 0.03, 1.6, lad, 3.4, -0.4, -0.3));
-  const ring = torus(0.5, 0.18, new THREE.MeshStandardMaterial({ map: stripeTexture(0xff5ea8, 0xffffff) }), -1, -1.1, 0.4); ring.rotation.x = Math.PI / 2; pool.add(ring);
-  pool.position.set(-9, 0, -5.5); yard.add(pool); blockRect(-9 - 3.9, -5.5 - 2.4, -9 + 3.9, -5.5 + 2.4);
+  const ALTO = 1.15, SUELO = 0.14;                          // pared, y la cara de arriba del fondo
+  const paredMat = flatMat(0xcdeef7), fondoMat = flatMat(0x8fd0e6), rimMat = flatMat(0x2a6fdb);
+  pool.add(box(7, SUELO, 4, fondoMat, 0, SUELO / 2, 0));
+  [[7.44, 0.22, 0, -2.11], [7.44, 0.22, 0, 2.11]].forEach(([w, d, x, z]) => pool.add(box(w, ALTO, d, paredMat, x, ALTO / 2, z)));
+  [[0.22, 4.0, -3.61, 0], [0.22, 4.0, 3.61, 0]].forEach(([w, d, x, z]) => pool.add(box(w, ALTO, d, paredMat, x, ALTO / 2, z)));
+  [[7.6, 0.32, 0, -2.11], [7.6, 0.32, 0, 2.11]].forEach(([w, d, x, z]) => pool.add(box(w, 0.12, d, rimMat, x, ALTO + 0.06, z)));
+  [[0.32, 4.2, -3.61, 0], [0.32, 4.2, 3.61, 0]].forEach(([w, d, x, z]) => pool.add(box(w, 0.12, d, rimMat, x, ALTO + 0.06, z)));
+  // escalerilla por fuera, en el lado que mira al patio
+  const lad = flatMat(0xdddddd, { metalness: 0.6, roughness: 0.3 });
+  [0.3, -0.3].forEach(z => pool.add(cyl(0.035, 0.035, 1.7, lad, 3.95, 0.85, z)));
+  [0.35, 0.75, 1.15].forEach(y => pool.add(box(0.66, 0.05, 0.05, lad, 3.95, y, 0)));
+  // Lo que queda en una piscina vacia a media fiesta: flotadores, churros, la pelota, vasos,
+  // un cubo, y una piñata que ya reventó y nadie ha recogido.
+  const suelo = SUELO + 0.02;
+  const ring = torus(0.5, 0.18, new THREE.MeshStandardMaterial({ map: stripeTexture(0xff5ea8, 0xffffff) }), -1.1, suelo + 0.16, 0.5); ring.rotation.x = Math.PI / 2; pool.add(ring);
+  const ring2 = torus(0.42, 0.15, new THREE.MeshStandardMaterial({ map: stripeTexture(0xffd23f, 0x2ec4b6) }), 1.9, suelo + 0.4, -1.15); ring2.rotation.set(Math.PI / 2, 0, 0.35); pool.add(ring2);
+  [[-2.5, 0.9, 0.5, 0xff8c42], [-2.2, -0.8, 1.9, 0x7b5ea7], [0.7, 1.2, -0.4, 0x2ec4b6]].forEach(([x, z, rot, c]) => {
+    const n = cyl(0.09, 0.09, 2.2, flatMat(c), x, suelo + 0.09, z, 10); n.rotation.set(Math.PI / 2, 0, rot); pool.add(n);
+  });
+  pool.add(sphere(0.24, new THREE.MeshStandardMaterial({ map: stripeTexture(0xff5ea8, 0xffffff) }), 2.7, suelo + 0.24, 1.2, 14));
+  pool.add(cyl(0.22, 0.17, 0.34, flatMat(0xffd23f), -3.0, suelo + 0.17, -1.35, 12));
+  [[-0.5, -1.5], [0.2, -1.7], [1.5, 0.6], [-1.7, 1.5]].forEach(([x, z]) => pool.add(cyl(0.07, 0.05, 0.13, flatMat(0xff5ea8), x, suelo + 0.065, z, 8)));
+  const rota = new THREE.Group();
+  rota.add(sphere(0.26, crepeMat(0x7b5ea7), 0, 0, 0, 12));
+  [0, 2.1, 4.2].forEach(a => { const c = cone(0.11, 0.34, crepeMat(0xffd23f), Math.cos(a) * 0.3, Math.sin(a) * 0.18, 0, 8); c.rotation.z = a - Math.PI / 2; rota.add(c); });
+  rota.position.set(1.2, suelo + 0.22, 1.6); rota.rotation.set(1.4, 0.7, 0.3); pool.add(rota);
+  // el letrero de "no bucear", clavado fuera y torcido
+  const letrero = new THREE.Group();
+  letrero.add(cyl(0.03, 0.03, 1.5, flatMat(0xdddddd), 0, 0.75, 0));
+  letrero.add(box(0.5, 0.34, 0.03, flatMat(0xfff4e0), 0, 1.55, 0));
+  letrero.add(box(0.42, 0.06, 0.04, flatMat(0xe63946), 0, 1.55, 0.02));
+  letrero.position.set(3.3, 0, 2.6); letrero.rotation.set(0, 0.4, 0.1); pool.add(letrero);
+  // Pegada a la valla oeste, y el bloqueo ajustado al bulto: entre la piscina y la Tia queda un
+  // paso de sobra, que antes eran diez centimetros y no cabia nadie.
+  pool.position.set(-9.6, 0, -5.2); yard.add(pool); blockRect(-13.2, -7.4, -5.9, -3.0);
   // picnic set, grill, cooler, chairs
   yard.add(makeTable(7, -9, 0x2ec4b6)); yard.add(makeTable(-7, -12.5, 0x7b5ea7));
   const grill = new THREE.Group(); grill.add(sphere(0.42, flatMat(0x222, { metalness: 0.5, roughness: 0.4 }), 0, 0.9, 0)); grill.add(cyl(0.02, 0.02, 0.8, flatMat(0x333), -0.25, 0.4, 0.2)); grill.add(cyl(0.02, 0.02, 0.8, flatMat(0x333), 0.25, 0.4, 0.2)); grill.add(cyl(0.02, 0.02, 0.8, flatMat(0x333), 0, 0.4, -0.3)); grill.position.set(9.5, 0, -4); yard.add(grill); blockCircle(9.5, -4, 0.6);
@@ -204,7 +238,17 @@ function makeCloud(x, y, z, s) { const g = new THREE.Group(); const m = new THRE
   launcher.add(box(1.3, 0.6, 0.9, flatMat(0x3a3a3a, { metalness: 0.3 }), 0, 0.3, 0));
   const barrel = cyl(0.2, 0.26, 1.5, new THREE.MeshStandardMaterial({ map: stripeTexture(0xff5ea8, 0xffd23f) }), 0, 0.9, 0); barrel.rotation.z = -0.9; barrel.position.set(0.35, 0.95, 0); launcher.add(barrel);
   [[-0.45, 0.4], [0.45, 0.4], [-0.45, -0.4], [0.45, -0.4]].forEach(([x, z]) => { const w = cyl(0.22, 0.22, 0.12, flatMat(0x222), x, 0.22, z, 12); w.rotation.x = Math.PI / 2; launcher.add(w); });
-  launcher.position.set(-10, 0, -12); yard.add(launcher); blockCircle(-10, -12, 1); window.LAUNCHER_POS = new THREE.Vector3(-9.4, 1.5, -12);
+  // Dos lanzadores, uno en cada banda, apuntandose el uno al otro por encima del patio. Uno solo
+  // dejaba todo el trafico de piñatas en la mitad izquierda; con los dos, los tiros cruzan por
+  // delante desde los dos lados y el patio se lee entero.
+  window.LANZADORES = [];
+  [[-10, 1], [10, -1]].forEach(([x, dir]) => {
+    const l = dir > 0 ? launcher : launcher.clone();
+    l.position.set(x, 0, -12); l.rotation.y = dir > 0 ? 0 : Math.PI;
+    yard.add(l); blockCircle(x, -12, 1);
+    window.LANZADORES.push({ boca: new THREE.Vector3(x + dir * 0.6, 1.5, -12), dir });
+  });
+  window.LAUNCHER_POS = window.LANZADORES[0].boca;
 })();
 
 // The Backyard grows with the party (§1): more decoration per Tier

@@ -17,48 +17,92 @@ body.playing #hud,body.hub #hud{opacity:1}
 .run-only{display:none}.hub-only{display:none}
 body.playing .run-only{display:block}
 body.hub .hub-only{display:block}
-body.hub #crosshair{opacity:.55;transform:translate(-50%,-50%) scale(.7)}
-#crosshair{position:absolute;left:50%;top:50%;width:26px;height:26px;transform:translate(-50%,-50%);--r:60px;--ex:0px}
+body.hub #crosshair{opacity:.55;--xhb:.7}
+#crosshair{position:absolute;left:50%;top:50%;width:26px;height:26px;--xhb:1;transform:translate(-50%,-50%) scale(calc(var(--xhs,1) * var(--xhb)));--r:60px;--ex:0px}
 #crosshair .ring,#crosshair .diamond,#crosshair .range{position:absolute;left:50%;top:50%;display:none}
 #crosshair[data-reticle=circle]::before,#crosshair[data-reticle=circle]::after,#crosshair[data-reticle=diamond]::before,#crosshair[data-reticle=diamond]::after,#crosshair[data-reticle=ring]::before,#crosshair[data-reticle=ring]::after{display:none}
-#crosshair[data-reticle=circle] .ring{display:block;width:var(--r);height:var(--r);border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 3px #000,inset 0 0 3px #000;background:radial-gradient(circle,rgba(46,196,182,.12),rgba(46,196,182,0) 70%)}
+#crosshair[data-reticle=circle] .ring{display:block;width:var(--r);height:var(--r);border:2px solid var(--xh,#fff);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 3px #000,inset 0 0 3px #000;background:radial-gradient(circle,rgba(46,196,182,.12),rgba(46,196,182,0) 70%)}
 #crosshair[data-reticle=circle] .dot{width:4px;height:4px}
-#crosshair[data-reticle=diamond] .diamond{display:block;width:22px;height:22px;border:2px solid #fff;transform:translate(-50%,-50%) rotate(45deg) scale(var(--ds,1));box-shadow:0 0 3px #000;transition:transform .08s}
-#crosshair[data-reticle=diamond].lock .diamond{border-color:var(--yellow);transform:translate(-50%,-50%) rotate(45deg) scale(.55)}
+#crosshair[data-reticle=diamond] .diamond{display:block;width:22px;height:22px;border:2px solid var(--xh,#fff);transform:translate(-50%,-50%) rotate(45deg) scale(var(--ds,1));box-shadow:0 0 3px #000;transition:transform .08s}
+#crosshair[data-reticle=diamond].lock .diamond{border-color:var(--xh,var(--yellow));transform:translate(-50%,-50%) rotate(45deg) scale(.55)}
 #crosshair[data-reticle=diamond] .dot{width:3px;height:3px}
 #crosshair[data-reticle=sniper]{width:44px;height:44px}
 #crosshair[data-reticle=sniper]::before{height:100%}#crosshair[data-reticle=sniper]::after{width:100%}
-#crosshair[data-reticle=sniper] .dot{width:3px;height:3px;background:#fff}
+#crosshair[data-reticle=sniper] .dot{width:3px;height:3px;background:var(--xh,#fff)}
 #crosshair[data-reticle=sniper] .range{display:block;left:28px;top:-4px;transform:none;font-size:11px;font-weight:800;color:#fff;text-shadow:0 1px 0 #000;white-space:nowrap;background:rgba(0,0,0,.35);padding:1px 5px;border-radius:6px}
 #crosshair[data-reticle=expand]::before{height:calc(100% + var(--ex))}#crosshair[data-reticle=expand]::after{width:calc(100% + var(--ex))}
 #crosshair[data-reticle=expand]{width:calc(26px + var(--ex));height:calc(26px + var(--ex))}
 #crosshair[data-reticle=expand].hot::before,#crosshair[data-reticle=expand].hot::after{background:var(--red)}
-#crosshair[data-reticle=ring] .ring{display:block;width:38px;height:38px;border:3px solid var(--red);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 3px #000}
-#crosshair[data-reticle=ring] .ring::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:16px;background:var(--red);transform:translateX(-50%);box-shadow:0 0 3px #000}
-#crosshair[data-reticle=ring] .dot{background:var(--red)}
-#crosshair::before,#crosshair::after{content:"";position:absolute;background:#fff;box-shadow:0 0 3px #000;border-radius:2px}
+#crosshair[data-reticle=ring] .ring{display:block;width:38px;height:38px;border:3px solid var(--xh,var(--red));border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 3px #000}
+#crosshair[data-reticle=ring] .ring::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:16px;background:var(--xh,var(--red));transform:translateX(-50%);box-shadow:0 0 3px #000}
+#crosshair[data-reticle=ring] .dot{background:var(--xh,var(--red))}
+#crosshair::before,#crosshair::after{content:"";position:absolute;background:var(--xh,#fff);box-shadow:0 0 3px #000;border-radius:2px}
 #crosshair::before{left:50%;top:0;width:2px;height:100%;transform:translateX(-50%)}
 #crosshair::after{top:50%;left:0;height:2px;width:100%;transform:translateY(-50%)}
-#crosshair .dot{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;background:var(--yellow);transform:translate(-50%,-50%);box-shadow:0 0 4px #000}
+#crosshair .dot{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;background:var(--xh,var(--yellow));transform:translate(-50%,-50%);box-shadow:0 0 4px #000}
 #crosshair.hit{animation:chpop .18s ease-out}
-@keyframes chpop{0%{transform:translate(-50%,-50%) scale(1.5)}100%{transform:translate(-50%,-50%) scale(1)}}
 
-.hud-card{position:absolute;background:var(--panel);color:var(--paper);border-radius:14px;padding:10px 16px;box-shadow:var(--shadow);border:2px solid rgba(255,244,224,.15)}
-#mag-card{left:22px;bottom:22px;min-width:190px}
-#mag-card .label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
-#mag-num{font-size:56px;line-height:1;font-weight:800;color:var(--yellow);text-shadow:0 3px 0 rgba(0,0,0,.4)}
+/* ---------- Recarga activa: el compas, a un palmo por debajo de la mira ----------
+   Va debajo y no encima porque encima es donde salen los floaters (MISS, SWEET HIT) y donde
+   mira el jugador para leer el impacto. La separacion crece con el tamano de mira elegido en
+   Accesibilidad, o una mira grande se comeria la barra. */
+#active-reload{position:absolute;left:50%;top:calc(50% + 46px + var(--xhs,1) * 16px);transform:translateX(-50%);width:154px;pointer-events:none}
+#active-reload[hidden]{display:none}
+.ar-track{position:relative;height:12px;border-radius:6px;background:rgba(0,0,0,.62);border:2px solid rgba(255,244,224,.7);box-shadow:0 2px 10px rgba(0,0,0,.6);overflow:hidden;animation:arin .18s cubic-bezier(.2,1.5,.4,1)}
+@keyframes arin{from{transform:scaleX(.5);opacity:0}to{transform:none;opacity:1}}
+.ar-track i{position:absolute;top:0;bottom:0;display:block}
+.ar-good{background:rgba(46,196,182,.6)}
+.ar-perfect{background:var(--yellow);box-shadow:0 0 9px rgba(255,210,63,.95)}
+.ar-needle{width:4px;margin-left:-2px;background:#fff;box-shadow:0 0 7px #fff,0 0 3px #000}
+.ar-key{margin-top:5px;text-align:center;opacity:0;transition:opacity .2s}
+#active-reload.teach .ar-key{opacity:.9}
+.ar-key kbd{display:inline-block;background:var(--paper);color:var(--ink);border-radius:5px;padding:0 7px;font-family:inherit;font-weight:800;font-size:12px;box-shadow:0 2px 0 rgba(0,0,0,.5)}
+#active-reload.good .ar-track{border-color:#fff;background:var(--teal)}
+#active-reload.perfect .ar-track{border-color:#fff;background:var(--yellow);box-shadow:0 0 20px rgba(255,210,63,.95)}
+#active-reload.perfect .ar-needle,#active-reload.good .ar-needle{display:none}
+#active-reload.jam .ar-track{border-color:var(--red);background:rgba(230,57,70,.4)}
+#active-reload.jam .ar-good,#active-reload.jam .ar-perfect{opacity:.2}
+@keyframes chpop{0%{transform:translate(-50%,-50%) scale(calc(var(--xhs,1) * var(--xhb) * 1.5))}100%{transform:translate(-50%,-50%) scale(calc(var(--xhs,1) * var(--xhb)))}}
+
+.hud-card{position:absolute;background:var(--panel);color:var(--paper);border-radius:16px;padding:14px 20px;box-shadow:var(--shadow);border:2px solid rgba(255,244,224,.15)}
+#left-stack{position:absolute;left:22px;bottom:22px;display:none;flex-direction:column;align-items:flex-start;gap:12px}
+body.playing #left-stack{display:flex}
+#mag-card{position:static;min-width:220px}
+/* Contador de racha al estilo osu. Va abajo EN MEDIO, no en la esquina: jugando se mira la mira,
+   y el centro-abajo es lo unico que se lee de reojo sin apartar la vista. Queda a la izquierda
+   del arma, que ocupa el tercio derecho de la pantalla. */
+#streak-card{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);display:none;align-items:center;gap:14px;line-height:1;color:#fff;font-weight:800}
+#streak-card.on{display:flex}
+#streak-card .sc-ic{display:inline-flex;width:52px;height:52px;color:var(--orange);filter:drop-shadow(0 0 10px rgba(255,140,66,.8))}
+#streak-card .sc-ic svg{width:52px;height:52px}
+#streak-n{font-size:84px;font-variant-numeric:tabular-nums;text-shadow:0 0 7px rgba(0,0,0,.9),0 5px 0 rgba(0,0,0,.6),0 0 26px rgba(255,140,66,.55)}
+#streak-card .sc-mult{align-self:flex-end;font-size:34px;color:var(--yellow);padding-bottom:12px;text-shadow:0 0 6px rgba(0,0,0,.9),0 3px 0 rgba(0,0,0,.6)}
+#streak-card.hot .sc-ic{color:#ff6b2c;filter:drop-shadow(0 0 12px rgba(255,107,44,.95))}
+#streak-card.hot #streak-n{text-shadow:0 0 7px rgba(0,0,0,.9),0 5px 0 rgba(0,0,0,.6),0 0 28px rgba(255,107,44,.8)}
+#streak-card.blaze .sc-ic{color:#ffd23f;filter:drop-shadow(0 0 16px rgba(255,210,63,1))}
+#streak-card.blaze #streak-n{color:#fff;text-shadow:0 0 7px rgba(0,0,0,.9),0 5px 0 rgba(0,0,0,.6),0 0 32px rgba(255,210,63,1)}
+#streak-card.pop #streak-n{animation:stpop .22s cubic-bezier(.2,1.6,.4,1)}
+@keyframes stpop{0%{transform:scale(1.4)}100%{transform:scale(1)}}
+/* Cuanta Round devuelve el arma ahora mismo: es el numero que el arbol sube hasta el 100%,
+   asi que tiene que estar a la vista mientras se juega y no solo en el panel de Récords. */
+#refund-line{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:15px;color:rgba(255,244,224,.75)}
+#refund-line .rf-ic{display:inline-flex;width:17px;height:17px;opacity:.8}
+#refund-line .rf-ic svg{width:17px;height:17px}
+#refund-line b{color:var(--teal);font-size:18px;font-variant-numeric:tabular-nums}
+#mag-card .label{font-size:15px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+#mag-num{font-size:76px;line-height:1;font-weight:800;color:var(--yellow);text-shadow:0 3px 0 rgba(0,0,0,.4)}
 #mag-num.low{color:var(--red);animation:pulse .6s infinite alternate}
 @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
 #mag-pips{display:flex;flex-wrap:wrap;gap:4px;max-width:220px;margin-top:6px}
-#mag-pips i{width:9px;height:16px;border-radius:3px;background:var(--yellow);box-shadow:inset 0 -4px 0 rgba(0,0,0,.25)}
+#mag-pips i{width:11px;height:20px;border-radius:3px;background:var(--yellow);box-shadow:inset 0 -4px 0 rgba(0,0,0,.25)}
 #mag-pips i.extra{background:var(--teal)}
-#weapon-name{font-size:14px;margin-top:6px;color:var(--teal);font-weight:700}
+#weapon-name{font-size:19px;margin-top:6px;color:var(--teal);font-weight:700}
 #candy-card{right:22px;top:22px;text-align:right;min-width:200px}
-#candy-card .label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
-#run-candy{font-size:40px;line-height:1;font-weight:800;color:var(--pink);text-shadow:0 3px 0 rgba(0,0,0,.4)}
+#candy-card .label{font-size:15px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+#run-candy{font-size:56px;line-height:1;font-weight:800;color:var(--pink);text-shadow:0 3px 0 rgba(0,0,0,.4)}
 #streak-line{font-size:15px;margin-top:4px;color:var(--yellow)}
 #streak-line b{font-size:20px}
-#cut-line{font-size:13px;margin-top:4px;color:#ffb3b3;display:none}
+#cut-line{font-size:15px;margin-top:4px;color:#ffb3b3;display:none}
 #cut-line.on{display:block}
 #tab-progress{margin-top:8px;font-size:12px;text-align:left;display:none}
 #tab-progress.on{display:block}
@@ -81,11 +125,11 @@ body.playing.lowtime #vignette{opacity:1;animation:vig .5s infinite alternate}
 .ro-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:22px}
 .ro-confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:cfall linear forwards}
 @keyframes cfall{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(110vh) rotate(720deg);opacity:.6}}
-#top-left{left:22px;top:22px;font-size:14px;line-height:1.5}
-#timer-wrap{position:absolute;left:22px;top:92px;width:300px;background:var(--panel);border-radius:14px;padding:8px 12px 10px;border:2px solid rgba(255,244,224,.15);box-shadow:var(--shadow)}
+#top-left{left:22px;top:22px;font-size:20px;line-height:1.5}
+#timer-wrap{position:absolute;left:22px;top:124px;width:380px;background:var(--panel);border-radius:16px;padding:10px 14px 12px;border:2px solid rgba(255,244,224,.15);box-shadow:var(--shadow)}
 body.playing #timer-wrap{display:block}
-#timer-wrap .tlabel{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,244,224,.75);display:flex;justify-content:space-between;align-items:baseline}
-#timer-wrap .tlabel b{font-size:16px;letter-spacing:0;text-transform:none;color:#fff;font-variant-numeric:tabular-nums}
+#timer-wrap .tlabel{font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,244,224,.75);display:flex;justify-content:space-between;align-items:baseline}
+#timer-wrap .tlabel b{font-size:24px;letter-spacing:0;text-transform:none;color:#fff;font-variant-numeric:tabular-nums}
 #timer-track{position:relative;height:14px;border-radius:7px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:5px}
 #timer-track i{position:absolute;top:0;height:100%;left:0;border-radius:7px}
 #timer-fill{background:linear-gradient(90deg,#2ec4b6,#7bd389);transition:width .1s linear}
@@ -113,7 +157,7 @@ body.playing #timer-wrap{display:block}
 #heat-wrap .track{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.15);overflow:hidden;max-width:150px}
 #heat-wrap i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--yellow),var(--orange));transition:width .08s linear}
 #heat-wrap i.hot{background:var(--red);animation:pulse .4s infinite alternate}
-body.playing #tut{top:176px}
+body.playing #tut{top:216px}
 #achv{position:absolute;right:22px;top:150px;background:var(--panel-2);color:var(--ink);border-radius:16px;border:3px solid var(--yellow);box-shadow:var(--shadow);padding:10px 14px;display:none;align-items:center;gap:12px;max-width:340px;pointer-events:none}
 #achv.on{display:flex;animation:achin .5s cubic-bezier(.2,1.4,.4,1)}
 @keyframes achin{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
@@ -122,7 +166,7 @@ body.playing #tut{top:176px}
 #achv .a-n{font-weight:800;font-size:16px}
 #achv .a-d{font-size:12px;opacity:.8}
 body.playing #achv{top:200px}
-#tut{position:absolute;left:22px;top:112px;max-width:340px;background:var(--panel-2);color:var(--ink);border-radius:16px;border:3px solid #fff;box-shadow:var(--shadow);padding:10px 14px;font-size:14.5px;line-height:1.35;display:none;align-items:flex-start;gap:10px;flex-wrap:wrap;pointer-events:auto}
+#tut{position:absolute;left:22px;top:112px;max-width:380px;background:var(--panel-2);color:var(--ink);border-radius:16px;border:3px solid #fff;box-shadow:var(--shadow);padding:12px 16px;font-size:17px;line-height:1.35;display:none;align-items:flex-start;gap:10px;flex-wrap:wrap;pointer-events:auto}
 #tut.on{display:flex;animation:tutin .35s ease-out}
 @keyframes tutin{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
 #tut .t-ico{font-size:24px;line-height:1}
@@ -143,17 +187,17 @@ body.playing #achv{top:200px}
 .wild-btn{background:var(--panel);color:var(--paper);border:2px solid var(--purple);border-radius:12px;padding:8px 12px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;min-width:120px;position:relative;overflow:hidden}
 .wild-btn .cd{position:absolute;left:0;bottom:0;height:4px;background:var(--purple);width:0}
 .wild-btn:disabled{opacity:.6;cursor:default}
-#hint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);color:rgba(255,244,224,.8);font-size:14px;background:rgba(0,0,0,.35);padding:6px 14px;border-radius:999px}
+#hint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);color:rgba(255,244,224,.8);font-size:18px;background:rgba(0,0,0,.45);padding:8px 18px;border-radius:999px}
 
 /* floaters */
-.floater{position:absolute;transform:translate(-50%,-50%);font-weight:800;font-size:14px;color:#fff;text-shadow:0 2px 0 #000,0 0 8px rgba(0,0,0,.6);pointer-events:none;animation:floatup 1s ease-out forwards;white-space:nowrap}
+.floater{position:absolute;transform:translate(-50%,-50%);font-weight:800;font-size:21px;color:#fff;text-shadow:0 2px 0 #000,0 0 8px rgba(0,0,0,.6);pointer-events:none;animation:floatup 1s ease-out forwards;white-space:nowrap}
 .floater.sweet{color:var(--yellow)}
-.floater.crit{color:var(--pink);font-size:17px}
+.floater.crit{color:var(--pink);font-size:26px}
 .floater.candy{color:#fff}
-.floater.miss{color:#ccc;font-size:12px}
-.floater.body{color:var(--orange);font-size:12px}
-.floater.pips{font-size:13px;letter-spacing:2px;opacity:.9;animation-duration:.7s}
-.floater.golden{color:#ffe28a;font-size:18px}
+.floater.miss{color:#ccc;font-size:18px}
+.floater.body{color:var(--orange);font-size:18px}
+.floater.pips{font-size:18px;letter-spacing:2px;opacity:.9;animation-duration:.7s}
+.floater.golden{color:#ffe28a;font-size:27px}
 .floater.cut{color:#ff8a8a}
 @keyframes floatup{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}100%{opacity:0;transform:translate(-50%,-140%) scale(1)}}
 
@@ -169,10 +213,10 @@ body.hub #weapon-bar{display:flex}
 #weapon-bar .ws.locked{opacity:.5}
 #hub-candy{font-size:36px;line-height:1;font-weight:800;color:var(--pink);text-shadow:0 3px 0 rgba(0,0,0,.4)}
 #hub-keep{font-size:22px;line-height:1;font-weight:800;color:#c9b3ef}
-#objective{position:absolute;left:50%;top:22px;transform:translateX(-50%);background:var(--panel);color:var(--paper);padding:8px 18px;border-radius:999px;font-size:15px;box-shadow:var(--shadow);border:2px solid rgba(255,210,63,.5);max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}
+#objective{position:absolute;left:50%;top:22px;transform:translateX(-50%);background:var(--panel);color:var(--paper);padding:9px 20px;border-radius:999px;font-size:20px;box-shadow:var(--shadow);border:2px solid rgba(255,210,63,.5);max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}
 body.hub #objective{display:block}
-#objective .l{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--yellow);margin-right:8px}
-#prompt{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);background:var(--paper);color:var(--ink);padding:10px 20px;border-radius:14px;font-size:18px;font-weight:800;box-shadow:var(--shadow);opacity:0;transition:opacity .15s,transform .15s;display:flex;gap:10px;align-items:center}
+#objective .l{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--yellow);margin-right:8px}
+#prompt{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);background:var(--paper);color:var(--ink);padding:11px 22px;border-radius:14px;font-size:23px;font-weight:800;box-shadow:var(--shadow);opacity:0;transition:opacity .15s,transform .15s;display:flex;gap:10px;align-items:center}
 #prompt.on{opacity:1;transform:translateX(-50%) translateY(-4px)}
 #prompt kbd,#recap-card kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:6px;padding:2px 9px;font-family:inherit;font-weight:800;box-shadow:0 2px 0 #000}
 #recap-card{position:absolute;left:22px;top:90px;width:340px;background:var(--panel-2);color:var(--ink);border-radius:16px;padding:12px 16px;box-shadow:var(--shadow);border:3px solid #fff;font-size:13.5px;line-height:1.4;pointer-events:auto}
@@ -206,7 +250,7 @@ body.hub #objective{display:block}
 .ro-actions .big-btn{margin-top:0;font-size:18px;padding:12px 26px}
 #pause{position:absolute;inset:0;background:rgba(20,10,30,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:60;cursor:pointer}
 #pause.on{display:flex}
-.pause-box{background:linear-gradient(180deg,#3a2450,#241533);border-radius:22px;border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 60px rgba(0,0,0,.5);padding:28px 34px;text-align:center;max-width:440px;color:var(--paper)}
+.pause-box{background:linear-gradient(180deg,#3a2450,#241533);border-radius:22px;border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 60px rgba(0,0,0,.5);padding:28px 34px;text-align:center;max-width:460px;max-height:88vh;overflow:auto;color:var(--paper)}
 .pause-box h2{margin:0 0 16px;font-size:32px;color:var(--yellow)}
 .pause-box p{margin:0 0 10px;font-size:16px}
 .pause-menu[hidden]{display:none}
@@ -240,7 +284,7 @@ body.hub #objective{display:block}
  linear-gradient(225deg,transparent 50%,#1b0f24 50%) 0 40px/28px 30px repeat-x,
  repeating-linear-gradient(90deg,var(--pink) 0 28px,var(--yellow) 28px 56px,var(--teal) 56px 84px,var(--orange) 84px 112px,var(--purple) 112px 140px);pointer-events:none}
 .title-box{text-align:center;color:var(--paper);max-width:720px;padding:24px}
-.title-box h1{font-size:clamp(56px,10vw,120px);margin:0;line-height:.9;letter-spacing:-.02em;color:var(--yellow);text-shadow:6px 6px 0 var(--pink),12px 12px 0 rgba(0,0,0,.4)}
+.title-box h1{font-size:clamp(42px,8vw,104px);margin:0;line-height:.9;letter-spacing:-.02em;color:var(--yellow);text-shadow:6px 6px 0 var(--pink),12px 12px 0 rgba(0,0,0,.4)}
 .title-box .pitch{font-size:22px;margin:18px 0 6px;color:#fff}
 .title-box .sub{opacity:.8;font-size:15px}
 .big-btn{display:inline-block;margin-top:24px;background:var(--pink);color:#fff;font:inherit;font-weight:800;font-size:22px;padding:14px 38px;border:0;border-radius:999px;cursor:pointer;box-shadow:0 6px 0 #b02d6d,0 12px 24px rgba(0,0,0,.4);transition:transform .08s}
@@ -267,7 +311,7 @@ body.hub #objective{display:block}
 .menu-btn.ghost:hover{opacity:1;background:rgba(255,255,255,.08);transform:none}
 .menu-btn.danger{color:#ff9a9a}
 .menu-foot{margin-top:30px;display:flex;flex-direction:column;align-items:center;gap:8px}
-.how-panel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,8,20,.72);backdrop-filter:blur(3px);z-index:20;padding:20px}
+.how-panel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,8,20,.72);backdrop-filter:blur(3px);z-index:70;padding:20px}
 .how-panel[hidden]{display:none}
 .how-card{background:linear-gradient(180deg,#3a2450,#241533);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:24px 30px 28px;max-width:600px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.5);color:var(--paper)}
 .how-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
@@ -276,9 +320,84 @@ body.hub #objective{display:block}
 .how-goal{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);font-size:14px;opacity:.85;line-height:1.5;text-align:center}
 
 /* modal / toast */
-#toast{position:absolute;left:50%;bottom:140px;transform:translateX(-50%);background:var(--panel);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50}
+#toast{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);background:var(--panel);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50}
 #toast.on{opacity:1}
 #credits{background:radial-gradient(ellipse at 50% 30%,#4a2c6e 0%,#1b0f24 70%);color:var(--paper);text-align:center}
 #credits .roll{max-width:640px;padding:30px;font-size:18px;line-height:1.7}
-#credits h1{color:var(--yellow);font-size:64px;margin:0 0 10px;text-shadow:5px 5px 0 var(--pink)}
+#credits h1{color:var(--yellow);font-size:clamp(34px,6vw,58px);margin:0 0 10px;text-shadow:5px 5px 0 var(--pink)}
 #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;background:#1b0f24;z-index:100;font-size:22px}
+
+/* =====================================================================
+   ACCESIBILIDAD
+   Tres bloques: los ajustes que el jugador enciende (body.flash-safe,
+   body.big-ui), lo que el sistema pide por su cuenta (prefers-reduced-motion)
+   y el foco de teclado, que hasta ahora no se veia en ningun boton.
+   ===================================================================== */
+
+/* --- Ajustes, ahora en secciones --- */
+.set-h{margin:14px 0 2px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--yellow);opacity:.9;border-bottom:1px solid rgba(255,255,255,.14);padding-bottom:5px}
+.set-h:first-child{margin-top:0}
+#settings{max-height:none}
+.how-a11y{margin:14px 0 0;opacity:.75;line-height:1.4}
+.how-a11y b{color:var(--yellow)}
+
+/* --- El foco del teclado se ve. Sin esto, jugar de menu en menu con Tab es a ciegas. --- */
+:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
+.big-btn:focus-visible,.menu-btn:focus-visible,.panel-close:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#settings input:focus-visible,#settings select:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+
+/* --- "Reducir destellos": nada de fogonazos a pantalla completa ni latidos --- */
+body.flash-safe #glitter.on{animation:glit-safe 1.6s ease-out forwards}
+@keyframes glit-safe{0%{opacity:.2}55%{opacity:.16}100%{opacity:0}}
+body.flash-safe.playing.lowtime #vignette{animation:none;opacity:.72}
+body.flash-safe #timer-wrap.penalty{animation:penflash-safe .35s ease-out 1}
+@keyframes penflash-safe{0%{background:rgba(230,57,70,.5)}100%{background:var(--panel)}}
+body.flash-safe .ar-track,body.flash-safe #streak-card.pop #streak-n{animation:none}
+body.flash-safe #mag-num.low,
+body.flash-safe #timer-wrap.low #timer-fill,
+body.flash-safe #heat-wrap i.hot,
+body.flash-safe #chelo-arrow,
+body.flash-safe .tut-pulse{animation:none}
+body.flash-safe .tut-pulse{filter:drop-shadow(0 0 10px rgba(255,210,63,.85))}
+
+/* --- "Texto de HUD mas grande": lo que hay que leer deprisa, legible de lejos --- */
+body.big-ui #hint{font-size:22px;padding:10px 22px}
+body.big-ui #prompt{font-size:29px;padding:14px 28px}
+body.big-ui #objective{font-size:24px;padding:12px 26px}
+body.big-ui #objective .l{font-size:17px}
+body.big-ui #toast{font-size:18px;padding:12px 22px}
+body.big-ui #tut{font-size:20px;max-width:440px}
+body.big-ui #top-left{font-size:24px}
+/* el bloque de arriba a la izquierda crece: lo de debajo baja con el */
+body.big-ui #timer-wrap{top:142px}
+body.big-ui.playing #tut{top:244px}
+body.big-ui #candy-card .label,body.big-ui #hub-card .label{font-size:18px}
+body.big-ui #mag-card .label{font-size:18px}
+body.big-ui #mag-num{font-size:90px}
+body.big-ui #run-candy{font-size:66px}
+body.big-ui #timer-wrap .tlabel{font-size:18px}
+body.big-ui #timer-wrap .tlabel b{font-size:29px}
+body.big-ui #weapon-name{font-size:23px}
+body.big-ui #cut-line,body.big-ui #tab-progress{font-size:19px}
+body.big-ui #streak-n{font-size:104px}
+body.big-ui #streak-card .sc-ic,body.big-ui #streak-card .sc-ic svg{width:62px;height:62px}
+body.big-ui #streak-card .sc-mult{font-size:40px}
+body.big-ui #refund-line{font-size:17px}
+body.big-ui #refund-line b{font-size:21px}
+body.big-ui .floater{font-size:25px}
+body.big-ui #active-reload{width:172px}
+body.big-ui .ar-track{height:12px}
+body.big-ui .ar-key kbd{font-size:15px}
+body.big-ui .floater.miss,body.big-ui .floater.body{font-size:21px}
+body.big-ui .floater.crit{font-size:31px}
+body.big-ui .floater.golden{font-size:32px}
+
+/* --- Lo que pide el sistema: si hay menos movimiento, se quita el adorno y se deja el aviso --- */
+@media (prefers-reduced-motion: reduce) {
+  .ro-confetti i{display:none}
+  #chelo-arrow,.tut-pulse,#mag-num.low,#timer-wrap.low #timer-fill,#heat-wrap i.hot,.ar-track,#streak-card.pop #streak-n{animation:none}
+  body.playing.lowtime #vignette{animation:none;opacity:.72}
+  #achv.on,#tut.on,#debt-banner.on,.ro-records .rec{animation-duration:.01ms}
+  .big-btn,.menu-btn{transition:none}
+  .big-btn:hover,.menu-btn:hover{transform:none}
+}

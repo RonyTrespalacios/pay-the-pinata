@@ -6,7 +6,7 @@ const errors=[]; page.on('pageerror',e=>errors.push('PAGEERROR '+e.message)); pa
 await page.route('**/three.min.js',r=>r.fulfill({status:200,contentType:'application/javascript',body:three}));
 await page.route('**/fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));
 // old save migration
-await page.addInitScript(()=>{ localStorage.setItem('partytab.save.v1', JSON.stringify({perm:{keepsakes:3,charms:{},weaponsUnlocked:['pistol','six'],seenWeapons:['pistol','six'],party:1,credits:0,aimMode:'mouse',muted:false,keepsakesEver:3},party:{candy:5000,tabs:[],tabsPaid:4,nodes:{mag_cap:2},favors:{},runCount:5,weapon:'pistol',nextTabId:3,guestCursor:2}})); });
+await page.addInitScript(()=>{ localStorage.setItem('paythepinata.save.v1', JSON.stringify({perm:{keepsakes:3,charms:{},weaponsUnlocked:['pistol','six'],seenWeapons:['pistol','six'],party:1,credits:0,aimMode:'mouse',muted:false,keepsakesEver:3},party:{candy:5000,tabs:[],tabsPaid:4,nodes:{mag_cap:2},favors:{},runCount:5,weapon:'pistol',nextTabId:3,guestCursor:2}})); });
 await page.goto('http://localhost:8777/');await page.waitForTimeout(1200);
 const mig=await page.evaluate(()=>({unlocked:S.perm.weaponsUnlocked, weapon:S.party.weapon, v:S.perm.v, aim:S.perm.aimMode}));
 console.log('migration', JSON.stringify(mig));

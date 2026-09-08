@@ -4,7 +4,7 @@ const RUN = {
   breaks: 0, sweetHits: 0, crits: 0, bodyHits: 0, missCount: 0, spillCandy: 0,
   lastSweetT: -99, lastShotT: -99, burstScale: 1, burstUntil: 0, burstReadyAt: 0, sugarHandsUntil: 0,
   toss: false, tossT: 0, spawnT: 0, centerpiece: null, boss: null, bossDown: false, endingAt: 0, timeInRun: 0, doubleOffered: false,
-  timeLeft: 0, bonusTime: 0, bonusCount: 0, reloading: false, reloadT: 0, rushUsed: false, rushUntil: 0, vacT: 0, vacCandy: 0, lastTick: 99, chains: 0,
+  crowdMult: 1, streakShown: -1, timeLeft: 0, bonusTime: 0, bonusCount: 0, reloading: false, reloadT: 0, reloadDur: 0, arOn: false, arDone: false, arHits: 0, rushUsed: false, rushUntil: 0, vacT: 0, vacCandy: 0, lastTick: 99, chains: 0,
   heat: 0, launcherT: 0, launched: 0, llamas: 0, keepsakesWon: 0, encoreUsed: false, jackpots: 0, holdT: 0, penalty: 0, spikers: 0,
 };
 const PROJ = [];   // Candy Cannon jawbreakers in flight
@@ -14,6 +14,7 @@ const ui = {
   mag: $('mag-num'), pips: $('mag-pips'), weapon: $('weapon-name'), runCandy: $('run-candy'), streakN: $('streak-n'), streakMult: $('streak-mult'),
   cutLine: $('cut-line'), cutPct: $('cut-pct'), party: $('hud-party'), tier: $('hud-tier'), run: $('hud-run'), banner: $('event-banner'),
   floaters: $('floaters'), wild: $('wild-bar'), crosshair: $('crosshair'), hint: $('hint'), toast: $('toast'),
+  streakCard: $('streak-card'), refundPct: $('refund-pct'),
 };
 const raycaster = new THREE.Raycaster();
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _ndc = new THREE.Vector2();
@@ -38,10 +39,10 @@ function streakMult() { return Math.min(D.streakCap(), 1 + D.streakStep() * RUN.
 function startRun(opts) {
   opts = opts || {};
   const p = S.party;
-  clearPinatas(); clearGroundCandy();
+  clearPinatas(); clearGroundCandy(); arHide();
   const w = D.weapon(); buildGun(w);
-  Object.assign(RUN, { active: true, mag: D.magCapacity(w), halfBank: 0, streak: 0, misses: 0, runCandy: 0, shots: 0, taken: 0, breaks: 0, sweetHits: 0, crits: 0, bodyHits: 0, missCount: 0, spillCandy: 0,
-    lastSweetT: -99, lastShotT: -99, burstScale: 1, burstUntil: 0, burstReadyAt: 0, sugarHandsUntil: 0, toss: !!opts.toss, tossT: 1.5, spawnT: 0, centerpiece: null, endingAt: 0, timeInRun: 0, doubleOffered: false, repoSpawned: false, bestStreak: 0, timeLeft: D.runTime(), bonusTime: 0, bonusCount: 0, reloading: false, reloadT: 0, rushUsed: false, rushUntil: 0, vacT: 0, vacCandy: 0, lastTick: 99, chains: 0, heat: 0, launcherT: 3 + Math.random() * 3, launched: 0, llamas: 0, keepsakesWon: 0, encoreUsed: false, jackpots: 0, holdT: 0, penalty: 0, spikers: 0, boss: null, bossDown: false, spikersFizzled: 0, events: [], goldenUntil: 0, stormUntil: 0, eventsFired: 0 });
+  Object.assign(RUN, { active: true, mag: D.magCapacity(w), halfBank: 0, crowdMult: 1, streak: 0, streakShown: -1, misses: 0, runCandy: 0, shots: 0, taken: 0, breaks: 0, sweetHits: 0, crits: 0, bodyHits: 0, missCount: 0, spillCandy: 0,
+    lastSweetT: -99, lastShotT: -99, burstScale: 1, burstUntil: 0, burstReadyAt: 0, sugarHandsUntil: 0, toss: !!opts.toss, tossT: 1.5, spawnT: 0, centerpiece: null, endingAt: 0, timeInRun: 0, doubleOffered: false, repoSpawned: false, bestStreak: 0, timeLeft: D.runTime(), bonusTime: 0, bonusCount: 0, reloading: false, reloadT: 0, reloadDur: 0, arOn: false, arDone: false, arHits: 0, rushUsed: false, rushUntil: 0, vacT: 0, vacCandy: 0, lastTick: 99, chains: 0, heat: 0, launcherT: 3 + Math.random() * 3, launched: 0, llamas: 0, keepsakesWon: 0, encoreUsed: false, jackpots: 0, holdT: 0, penalty: 0, spikers: 0, boss: null, bossDown: false, spikersFizzled: 0, events: [], goldenUntil: 0, stormUntil: 0, eventsFired: 0 });
   scheduleEvents();
   PROJ.forEach(p => scene.remove(p.mesh)); PROJ.length = 0; aim.firing = false; setReticle(w);
   RUN.streak = D.hotStart(); RUN.toss = false;
@@ -99,7 +100,15 @@ function updateHUD() {
   ui.weapon.textContent = RUN.reloading ? T('RELOADING…') : T(D.weapon().name); ui.mag.classList.toggle('reloading', RUN.reloading);
   const hw = $('heat-wrap'); if (hw) { const w = D.weapon(); hw.hidden = !w.heat; if (w.heat) { const bar = $('heat-bar'); bar.style.width = Math.min(100, RUN.heat * 100) + '%'; bar.classList.toggle('hot', RUN.heat > BAL.heat_soft); } }
   ui.runCandy.textContent = Math.floor(RUN.runCandy).toLocaleString();
+  // La racha, al estilo osu: aparece a partir de 1, calienta a 5 y arde a 10, y el numero pega
+  // un bote cada vez que sube. Es lo unico del HUD que se mira sin querer, asi que se gana el sitio.
   ui.streakN.textContent = RUN.streak; ui.streakMult.textContent = streakMult().toFixed(2);
+  const sc = ui.streakCard;
+  sc.classList.toggle('on', RUN.streak > 0);
+  sc.classList.toggle('hot', RUN.streak >= 5);
+  sc.classList.toggle('blaze', RUN.streak >= 10);
+  if (RUN.streak !== RUN.streakShown) { RUN.streakShown = RUN.streak; if (RUN.streak > 0) { sc.classList.remove('pop'); void sc.offsetWidth; sc.classList.add('pop'); } }
+  ui.refundPct.textContent = Math.round(D.refundChance() * 100) + '%';
   const cut = D.cutPct(); ui.cutLine.classList.toggle('on', cut > 0); ui.cutPct.textContent = cut + '%';
   // how close this Run puts you to the next Tab: banked Candy (teal) + this Run's Candy (pink) against the amount
   const tp = $('tab-progress'); if (tp) { const soon = S.party.tabs.filter(t => !t.cleanup).sort((a, b) => a.dueLeft - b.dueLeft)[0] || S.party.cleanupTab;
@@ -153,7 +162,7 @@ function toast(msg, ms) { ui.toast.textContent = T(msg); ui.toast.classList.add(
 
 // ---- Candy payout with The Cut (§5) ----
 function collectCandy(amount, pos, opts) {
-  opts = opts || {}; amount = Math.floor(amount); if (amount <= 0) return 0;
+  opts = opts || {}; amount = Math.floor(amount * (RUN.crowdMult || 1)); if (amount <= 0) return 0;
   let taken = 0;
   if (!opts.untaxed) { const cut = D.cutPct(); taken = Math.floor(amount * cut / 100); }
   const net = amount - taken;
@@ -234,12 +243,17 @@ function shoot(t) {
 
   if (hitsByPinata.size === 0) { onMiss(); afterShot(); return; }
 
+  // Bonus de multitud (la Escopeta). Se fija ANTES de repartir para que lo cobre todo lo que
+  // salga de este disparo — roturas, salpicadura, cadenas y excedente — y no solo la primera piñata.
+  RUN.crowdMult = 1 + (w.crowd || 0) * Math.max(0, hitsByPinata.size - 1);
+  if (RUN.crowdMult > 1) floater(es('CROWD', 'MULTITUD') + ' ×' + RUN.crowdMult.toFixed(2), 'golden');
+
   // Resolve every piñata hit; refund/streak/crit are evaluated ONCE per shot
   let anySweet = false, sweetPos = null, sweetPinata = null, brokeCount = 0;
   for (const [P, h] of hitsByPinata) {
     let ww = w;
     if (w.id === 'shotgun') { // pellets: heavy up close, weak past the second line; several pellets on one piñata stack
-      const fall = h.dist < 9 ? 1.5 : h.dist < 14 ? 1.0 : 0.4; ww = Object.assign({}, w, { damage: w.damage * fall * Math.min(4, h.pelletHits || 1) });
+      const fall = h.dist < 10 ? 1.5 : h.dist < 16 ? 1.0 : 0.55; ww = Object.assign({}, w, { damage: w.damage * fall * Math.min(4, h.pelletHits || 1) });
     }
     const res = applyHit(P, h, ww, t);
     if (res.sweet) { anySweet = true; sweetPos = sweetPos || h.point; sweetPinata = sweetPinata || P; }
@@ -281,8 +295,17 @@ function updateEvents(t) {
 function onSweet(w, crit, sweetPos, t) {
   const tm = w.timeMult || 1;
   unlockAchievement('first_sweet'); if (RUN.streak >= 30) unlockAchievement('streak30'); else if (RUN.streak >= 20) unlockAchievement('streak20'); else if (RUN.streak >= 10) unlockAchievement('streak10');
-  if (crit) { RUN.crits++; let cr = D.critRefund(); if (t < RUN.sugarHandsUntil) cr = Math.max(cr, 3); refund(cr, sweetPos, 'CRIT'); SFX.crit(); addTime(D.critTime() * tm, 'CRIT'); JUICE.hitStop = 0.09; JUICE.shake = Math.max(JUICE.shake, 0.6); }
-  else { refund(D.sweetRefund(), sweetPos, 'SWEET HIT'); SFX.sweet(); addTime(D.sweetTime(w) * tm, 'SWEET'); JUICE.hitStop = 0.06; JUICE.shake = Math.max(JUICE.shake, 0.35); }
+  // La Round vuelve por probabilidad (D.refundChance, que sube con Devolución de Balas hasta el
+  // 100%). Cuando no toca, el Sweet Hit sigue pagando Candy y reloj: lo unico que se pierde es la bala.
+  if (crit) {
+    RUN.crits++; const manos = t < RUN.sugarHandsUntil;   // Sugar Hands: durante esos 10 s la devolución es segura
+    let cr = D.critRefund(); if (manos) cr = Math.max(cr, 3);
+    if (manos || Math.random() < D.critRefundChance()) refund(cr, sweetPos, 'CRIT'); else floater('CRIT', 'crit', sweetPos);
+    SFX.crit(); addTime(D.critTime() * tm, 'CRIT'); JUICE.hitStop = 0.09; JUICE.shake = Math.max(JUICE.shake, 0.6);
+  } else {
+    if (Math.random() < D.refundChance()) refund(D.sweetRefund(), sweetPos, 'SWEET HIT'); else floater('SWEET HIT', 'sweet', sweetPos);
+    SFX.sweet(); addTime(D.sweetTime(w) * tm, 'SWEET'); JUICE.hitStop = 0.06; JUICE.shake = Math.max(JUICE.shake, 0.35);
+  }
   if (RUN.streak >= 10 && D.rush() && !RUN.rushUsed) { RUN.rushUsed = true; RUN.rushUntil = t + D.rushDuration(); toast('SUGAR RUSH — the clock freezes, everything pays double!', 3000); SFX.golden(); }
 }
 // The Candy Cannon: one slow shell, an area blast at the impact point. Every piñata inside goes; a Sweet Spot inside makes it a Sweet Hit.
@@ -358,9 +381,75 @@ function onMiss() {
   else floater('MISS (Grace)', 'miss');
   SFX.miss();
 }
-function manualReload() { if (!RUN.active || RUN.reloading || RUN.mag >= D.magCapacity()) return; RUN.reloading = true; RUN.reloadT = D.reloadTime() * (0.5 + 0.5 * (1 - RUN.mag / D.magCapacity())); floater('RELOAD', 'miss'); SFX.open(); updateHUD(); }
+// ---- ACTIVE RELOAD: the Gears of War beat, but a palm's width under the crosshair ----
+// Every reload draws a short track under the crosshair with a needle running across it. Press R
+// again while the needle is inside the window and the Mag refills on the spot; land the narrow
+// band at the START of that window and the clock pays you for it too.
+//
+// The windows are FRACTIONS of the track, never seconds (see BAL.active_reload). That is what
+// makes the trick learnable: the spot on screen where R has to land is the same with every
+// weapon and every rank of Quick reload, even though those change how long a reload takes.
+//
+// Missing jams the weapon — the track grows and the needle drops back — so mashing R is worse
+// than not touching it. Doing nothing is always the old behaviour, which is what keeps the
+// mechanic optional for a player who does not want a reflex test.
+const AR = { el: $('active-reload'), hideT: 0 };
+AR.needle = AR.el.querySelector('.ar-needle'); AR.good = AR.el.querySelector('.ar-good'); AR.perfect = AR.el.querySelector('.ar-perfect');
+function arZones() {
+  const B = BAL.active_reload, k = S.perm.activeReload === 2 ? B.wide : 1;
+  // Se ensancha hacia delante y no alrededor del centro: el punto donde HAY que darle no se
+  // mueve entre "Normal" y "Amplia", asi que lo aprendido en una sigue valiendo en la otra.
+  const estirar = z => [z[0], Math.min(1, z[0] + (z[1] - z[0]) * k)];
+  return { good: estirar(B.good), perfect: estirar(B.perfect) };
+}
+function startReload(dur) {
+  RUN.reloading = true; RUN.reloadT = dur; RUN.reloadDur = dur; RUN.arDone = false;
+  RUN.arOn = S.perm.activeReload !== 0 && dur >= BAL.active_reload.min_dur;
+  if (RUN.arOn) arShow(); else arHide();
+  updateHUD();
+}
+function arShow() {
+  const Z = arZones(), poner = (el, z) => { el.style.left = z[0] * 100 + '%'; el.style.width = (z[1] - z[0]) * 100 + '%'; };
+  poner(AR.good, Z.good); poner(AR.perfect, Z.perfect);
+  AR.needle.style.left = '0%';
+  AR.el.classList.remove('good', 'perfect', 'jam');
+  AR.el.classList.toggle('teach', (S.perm.arHits || 0) < BAL.active_reload.teach);   // la tecla se enseña hasta que se coge el truco
+  AR.el.hidden = false; clearTimeout(AR.hideT);
+}
+function arHide() { clearTimeout(AR.hideT); AR.el.hidden = true; AR.el.classList.remove('good', 'perfect', 'jam'); }
+function arFlash(cls, quedarse) {
+  AR.el.classList.remove('good', 'perfect', 'jam'); void AR.el.offsetWidth; AR.el.classList.add(cls);
+  clearTimeout(AR.hideT); if (!quedarse) AR.hideT = setTimeout(arHide, 420);
+}
+// true si el toque de R se lo ha quedado el minijuego; false para que siga siendo una recarga normal.
+function activeReload() {
+  if (!RUN.active || !RUN.reloading || !RUN.arOn || RUN.arDone) return false;
+  RUN.arDone = true;
+  const k = 1 - Math.max(0, RUN.reloadT) / RUN.reloadDur;   // exactamente lo que dibuja la aguja
+  const Z = arZones(), dentro = z => k >= z[0] && k <= z[1];
+  if (dentro(Z.perfect)) {
+    arFlash('perfect'); floater('PERFECT RELOAD', 'golden'); SFX.crit();
+    ui.crosshair.classList.remove('hit'); void ui.crosshair.offsetWidth; ui.crosshair.classList.add('hit');
+    finishReload(true); addTime(BAL.active_reload.time, 'RELOAD'); arAcertada();
+  } else if (dentro(Z.good)) {
+    arFlash('good'); floater('QUICK RELOAD', 'sweet'); SFX.sweet();
+    finishReload(true); arAcertada();
+  } else {
+    const pena = RUN.reloadDur * BAL.active_reload.jam;
+    RUN.reloadT += pena; RUN.reloadDur += pena;   // la barra crece y la aguja retrocede: se ve lo que ha costado
+    arFlash('jam', true); floater('JAMMED', 'miss'); SFX.miss();
+  }
+  return true;
+}
+function arAcertada() { S.perm.arHits = (S.perm.arHits || 0) + 1; RUN.arHits++; saveGame(); }
+function finishReload(activa) {
+  RUN.reloading = false; RUN.arOn = false; RUN.mag = D.magCapacity(); RUN.halfBank = 0;
+  updateHUD(); if (!activa) { SFX.open(); arHide(); }
+}
+function manualReload() { if (!RUN.active || RUN.reloading || RUN.mag >= D.magCapacity()) return; startReload(D.reloadTime() * (0.5 + 0.5 * (1 - RUN.mag / D.magCapacity()))); floater('RELOAD', 'miss'); SFX.open(); }
 function afterShot() {
-  if (RUN.mag <= 0 && !RUN.reloading) { RUN.reloading = true; RUN.reloadT = D.reloadTime(); SFX.miss(); floater('RELOAD', 'miss'); }
+  RUN.crowdMult = 1;   // el bonus de multitud vive solo lo que dura el disparo
+  if (RUN.mag <= 0 && !RUN.reloading) { startReload(D.reloadTime()); SFX.miss(); floater('RELOAD', 'miss'); }
   updateHUD();
 }
 
@@ -540,7 +629,15 @@ function updateRun(dt, t) {
   if (RUN.timeLeft <= 0 && D.encore() && !RUN.encoreUsed && RUN.streak >= 8) { RUN.encoreUsed = true; RUN.timeLeft = 5; toast('ENCORE! Five more seconds — keep the Streak alive.', 3000); SFX.golden(); JUICE.shake = 0.5; }
   if (RUN.timeLeft <= 0) { RUN.timeLeft = 0; RUN.endingAt = t + 0.9; ui.hint.textContent = T('Time! The Run is over.'); SFX.timeUp(); JUICE.shake = 0.5; return; }
   if (RUN.heat > 0) { RUN.heat = Math.max(0, RUN.heat - D.heatCool() * dt); if (D.weapon().heat) { const bar = $('heat-bar'); if (bar) { bar.style.width = Math.min(100, RUN.heat * 100) + '%'; bar.classList.toggle('hot', RUN.heat > BAL.heat_soft); } } }
-  if (RUN.reloading) { RUN.reloadT -= dt; const bar = $('reload-bar'); if (bar) bar.style.width = (100 * (1 - Math.max(0, RUN.reloadT) / D.reloadTime())) + '%'; if (RUN.reloadT <= 0) { RUN.reloading = false; RUN.mag = D.magCapacity(); RUN.halfBank = 0; updateHUD(); SFX.open(); } }
+  if (RUN.reloading) {
+    RUN.reloadT -= dt;
+    // El avance se mide contra la duracion DE ESTA recarga (una recarga a mano con el cargador
+    // medio lleno es mas corta, y un atasco la alarga), no contra D.reloadTime().
+    const k = Math.max(0, Math.min(1, 1 - Math.max(0, RUN.reloadT) / (RUN.reloadDur || D.reloadTime())));
+    const bar = $('reload-bar'); if (bar) bar.style.width = (100 * k) + '%';
+    if (RUN.arOn) AR.needle.style.left = (k * 100) + '%';
+    if (RUN.reloadT <= 0) finishReload(false);
+  }
   // Candy Vacuum: on a hot Streak the grass empties itself into your pockets
   if (D.vacuum() && RUN.streak >= D.vacuumStreak() && groundCandy.length) { RUN.vacT -= dt; if (RUN.vacT <= 0) { RUN.vacT = 0.22; const per = D.vacuumCandy(); candyToHost(3, () => { RUN.runCandy += per; RUN.vacCandy += per; SFX.vac(); if (RUN.vacCandy % 10 < per) floater('VACUUM +' + RUN.vacCandy, 'sweet', _feetFloat.set(camera.position.x, 0.4, camera.position.z - 1.5)); updateHUD(); }); } }
   // spawn pacing: keep the Backyard full
@@ -571,7 +668,7 @@ function updateRun(dt, t) {
 const _feetFloat = new THREE.Vector3();
 
 function endRun() {
-  RUN.active = false; RUN.endingAt = 0; document.body.classList.remove('lowtime');
+  RUN.active = false; RUN.endingAt = 0; RUN.reloading = false; arHide(); document.body.classList.remove('lowtime');
   const p = S.party;
   const banked = Math.floor(RUN.runCandy);
   p.candy += banked;

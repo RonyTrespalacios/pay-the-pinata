@@ -32,7 +32,7 @@ vendor = root / 'vendor'
 THREE = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 FONT = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
         '<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">')
-TITULO = 'Party Tab'
+TITULO = 'Pay the Piñata'
 
 # Lo unico que separa al juego de escritorio del de navegador una vez dentro
 # del codigo. El juego lo mira para no ofrecer los apanos de la version web:

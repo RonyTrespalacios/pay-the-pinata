@@ -1,5 +1,6 @@
 // ---------- STATE, SAVE/LOAD, DERIVED STATS ----------
-const SAVE_KEY = 'partytab.save.v1';
+const SAVE_KEY = 'paythepinata.save.v1';
+const SAVE_KEY_VIEJA = 'partytab.save.v1';   // el juego se llamaba Party Tab: las partidas de entonces se migran al cargar
 
 function freshParty() {
   return {
@@ -9,8 +10,18 @@ function freshParty() {
     lastRun: null, tabsArrivedThisRun: [], firstMail: true, tabsEverPaid: 0,
   };
 }
+// Si el sistema pide menos movimiento, el juego arranca ya calmado: sin sacudida de camara
+// y con los destellos suavizados. Es un ajuste del jugador, asi que solo decide el valor
+// INICIAL de una partida nueva; a partir de ahi manda lo que el jugador elija en Ajustes.
+function prefiereCalma() {
+  try { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
+}
 function freshPerm() {
-  return { keepsakes: 0, charms: {}, weaponsUnlocked: ['pea'], seenWeapons: ['pea'], party: 1, credits: 0, aimMode: 'lock', muted: false, keepsakesEver: 0, v: 3, bestTier: 1, sensV: BAL.sens_default, dpi: 800 };
+  const calma = prefiereCalma();
+  return { keepsakes: 0, charms: {}, weaponsUnlocked: ['pea'], seenWeapons: ['pea'], party: 1, credits: 0, aimMode: 'lock', muted: false, keepsakesEver: 0, v: 3, bestTier: 1, sensV: BAL.sens_default, dpi: 800,
+    // ---- accesibilidad y comodidad ----
+    invertY: false, fovH: BAL.fov_h_default, holdToStart: true, assist: 0, activeReload: 1, arHits: 0,
+    shake: calma ? 0 : 1, flashSafe: calma, xhColor: '', xhScale: 1, bigUI: false };
 }
 
 const S = { perm: freshPerm(), party: freshParty() };
@@ -20,7 +31,13 @@ function saveGame() {
 }
 function loadGame() {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    // Una partida guardada cuando el juego se llamaba Party Tab vive en la clave vieja.
+    // Se lee, se reescribe en la nueva y se borra la anterior: el jugador no pierde nada.
+    let raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(SAVE_KEY_VIEJA);
+      if (raw) { localStorage.setItem(SAVE_KEY, raw); localStorage.removeItem(SAVE_KEY_VIEJA); }
+    }
     if (!raw) return false;
     const d = JSON.parse(raw);
     if (!d || !d.perm || !d.party) return false;
@@ -39,7 +56,7 @@ function loadGame() {
     return true;
   } catch (e) { return false; }
 }
-function wipeSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} S.perm = freshPerm(); S.party = freshParty(); }
+function wipeSave() { try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(SAVE_KEY_VIEJA); } catch (e) {} S.perm = freshPerm(); S.party = freshParty(); }
 
 // ---- derived values (every formula reads BAL + nodes + Charms + Favors) ----
 const rank   = id => S.party.nodes[id] || 0;
@@ -50,7 +67,9 @@ const D = {
   nodesPurchased: () => Object.values(S.party.nodes).reduce((a, b) => a + b, 0),
   weapon: () => WEAPONS.find(w => w.id === S.party.weapon) || WEAPONS[0],
   magCapacity: (w) => (w || D.weapon()).mag + rank('mag_cap') + charm('ring') * 2 + favor('mag'),
-  sweetRefund: () => [1, 1.5, 2][rank('sweet_refund')],
+  refundChance: () => Math.min(1, BAL.refund_base + BAL.refund_per_rank * rank('sweet_refund')),
+  critRefundChance: () => Math.min(1, D.refundChance() + BAL.refund_crit_bonus),   // un Crit se cobra mejor que un Sweet Hit
+  sweetRefund: () => BAL.sweet_refund,
   critRefund: () => BAL.crit_refund + rank('crit_refund'),
   grace: () => rank('grace') + favor('grace'),
   freeFirst: () => rank('free_first') > 0,
@@ -73,8 +92,8 @@ const D = {
   runTime: () => BAL.run_time + 5 * rank('run_time') + 3 * charm('watch'),
   wup: (w, id) => ((S.party.wup[(w || D.weapon()).id] || {})[id] || 0),
   reloadTime: (w) => { w = w || D.weapon(); return (w.reload || BAL.reload_time) * Math.pow(0.75, rank('fast_reload')) * Math.pow(0.8, D.wup(w, 'reload')); },
-  cooldown: (w) => (w || D.weapon()).cooldown * (1 - 0.10 * rank('hair_trigger')),
-  hitRadius: (w) => { w = w || D.weapon(); return w.hitRadius + 0.006 * D.wup(w, 'margin'); },
+  cooldown: (w) => (w || D.weapon()).cooldown * (1 - 0.10 * rank('hair_trigger')) * Math.pow(0.88, D.wup(w, 'rof')),
+  hitRadius: (w) => { w = w || D.weapon(); return w.hitRadius + 0.006 * D.wup(w, 'margin') + A11Y.assist(); },
   kickMult: (w) => 1,
   wupTracks: (w) => WUP_BY_WEAPON[(w || D.weapon()).id] || [],
   spread: (w) => { w = w || D.weapon(); return w.spread * Math.pow(0.85, D.wup(w, 'cone')); },

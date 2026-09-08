@@ -21,7 +21,7 @@ class Pinata {
     this.repoHeld = opts.repoHeld || 0;
     this.life = this.k.life || 0;
     this.candyBase = opts.candyBase || this.k.candy;
-    if (this.k.hazard) { this.fuse = BAL.spiker_fuse[0] + Math.random() * (BAL.spiker_fuse[1] - BAL.spiker_fuse[0]); this.fuseTick = 0; }
+    if (this.k.hazard || this.k.decoy) { this.fuse = BAL.bad_fuse[0] + Math.random() * (BAL.bad_fuse[1] - BAL.bad_fuse[0]); this.fuseTick = 0; }
     // pendulum / spring state: swings are real now, and a Body Hit kicks the piñata away
     this.ang = 0; this.angVel = 0; this.bounceY = 0; this.bounceV = 0; this.zipT = Math.random() * 6; this.spinVel = 0;
 
@@ -328,11 +328,24 @@ class Pinata {
 
   update(dt, t) {
     this.age += dt;
-    if (this.fuse != null) {   // the Spiker is a reaction test: blink, tick, then fizzle and hand the slot to something else
-      this.fuse -= dt; this.fuseTick -= dt; const blink = Math.sin(t * (this.fuse < 0.6 ? 40 : 18)) > 0;
-      this.body.scale.setScalar(this.baseScale * (blink ? 1.08 : 0.94)); this.parts.forEach(m => { if (m.material && m.material.emissive) { m.material.emissive.setHex(blink ? 0xff2020 : 0x000000); m.material.emissiveIntensity = blink ? 0.9 : 0.05; } });
-      if (this.fuseTick <= 0) { this.fuseTick = this.fuse < 0.6 ? 0.12 : 0.25; if (HUB.mode === 'run') beep(this.fuse < 0.6 ? 1400 : 900, 0.03, 'square', 0.03); }
-      if (this.fuse <= 0) { const slot = this.slot; const wp = this.worldPos(); burst(wp, 0x444444, 10, 0, null); this.remove(); RUN.spikersFizzled = (RUN.spikersFizzled || 0) + 1; if (slot && RUN.active) spawnPinata(pickKind(), { slot }); return; }
+    // Una piñata mala es una prueba de reflejos: parpadea, se apaga sola y deja el sitio a una buena.
+    // El Spiker ademas hace tic-tac en rojo, porque conviene que se note desde la otra punta del patio;
+    // la Bomba de Brillantina solo late, que ya lleva su cartel de DO NOT SHOOT encima.
+    if (this.fuse != null) {
+      this.fuse -= dt; this.fuseTick -= dt;
+      const rapido = this.fuse < 0.6, blink = Math.sin(t * (rapido ? 40 : 18)) > 0;
+      this.body.scale.setScalar(this.baseScale * (blink ? 1.08 : 0.94));
+      if (this.k.hazard) {
+        this.parts.forEach(m => { if (m.material && m.material.emissive) { m.material.emissive.setHex(blink ? 0xff2020 : 0x000000); m.material.emissiveIntensity = blink ? 0.9 : 0.05; } });
+        if (this.fuseTick <= 0) { this.fuseTick = rapido ? 0.12 : 0.25; if (HUB.mode === 'run') beep(rapido ? 1400 : 900, 0.03, 'square', 0.03); }
+      }
+      if (this.fuse <= 0) {
+        const slot = this.slot, wp = this.worldPos();
+        burst(wp, this.k.hazard ? 0x444444 : 0xe6e6fa, 10, 0, null); this.remove();
+        if (this.k.hazard) RUN.spikersFizzled = (RUN.spikersFizzled || 0) + 1;
+        if (slot && RUN.active) spawnPinata(pickKind({ buenas: true }), { slot });   // el relevo nunca es otra mala
+        return;
+      }
     }
     if (this.stunUntil && t < this.stunUntil) { this.body.position.y = -this.stringLen + Math.sin(t * 40) * 0.01; return; }   // stunned: frozen mid-swing
     const sp = this.speed;
@@ -423,13 +436,17 @@ class Pinata {
 
 function spawnPinata(kindId, opts) { return new Pinata(kindId, opts); }
 
-// Which kinds may hang at the current Tier, with weights
-function pickKind() {
+// Which kinds may hang at the current Tier, with weights.
+// `opts.buenas` deja fuera al Spiker y a la Bomba de Brillantina: se usa para el relevo de una
+// piñata mala que se apago sola, para que el patio no encadene dos "no dispares" en el mismo sitio.
+function pickKind(opts) {
   // Only invited piñatas hang (the Piñatas branch of the Tree). The Star is always at the party.
   const tier = D.tier();
   const pool = [['star', tier >= 3 ? 2 : 3], ['donkey', tier >= 3 ? 2 : 4], ['burro', 3], ['sun', 2.5], ['bull', 2], ['cactus', 2.2], ['chili', 2], ['luchador', 1.8], ['cluster', 1.8], ['nest', 2.2], ['armored', 1.4], ['glass', 2.4], ['skull', 2.2]].filter(([k]) => D.kindUnlocked(k));
-  if (tier >= 3) pool.push(['glitter', 0.9]);   // the decoy needs no invitation
-  if (tier >= 2 || S.party.runCount >= 4) pool.push(['spiker', 1.1]);   // nor does the hazard
+  if (!(opts && opts.buenas)) {
+    if (tier >= 3) pool.push(['glitter', 0.9]);   // the decoy needs no invitation
+    if (tier >= 2 || S.party.runCount >= 4) pool.push(['spiker', 1.1]);   // nor does the hazard
+  }
   let tot = pool.reduce((a, p) => a + p[1], 0), r = Math.random() * tot;
   for (const [k, w] of pool) { r -= w; if (r <= 0) return k; }
   return 'star';
@@ -471,10 +488,22 @@ function releaseNestlets(parent) {
   out.forEach((p, i) => { p.phase = i / n * Math.PI * 2; });
   return out;
 }
+// Un tiro del lanzador. Angulo y fuerza salen a suerte dentro de BAL.toss, asi que no hay dos
+// arcos iguales y hay que leer cada uno: es lo que convierte al lanzador en un objetivo y no en
+// un adorno. Va alto de verdad — cruza por encima de las lineas de piñatas, y que los banderines
+// lo tapen medio segundo es parte de la gracia, no un problema que haya que evitar bajando el tiro.
 function spawnToss() {
-  const pos = window.LAUNCHER_POS.clone();
-  const p = spawnPinata('toss', { position: pos, stringLen: 0, sweetScale: 1.1 });
-  p.vel = new THREE.Vector3(3.0 + Math.random() * 2.2, 4.2 + Math.random() * 1.1, (Math.random() - 0.3) * 1.5);
+  const L = window.LANZADORES[Math.floor(Math.random() * window.LANZADORES.length)];
+  const p = spawnPinata('toss', { position: L.boca.clone(), stringLen: 0, sweetScale: 1.1 });
+  const T = BAL.toss;
+  const fuerza = T.speed[0] + Math.random() * (T.speed[1] - T.speed[0]);
+  const alza = (T.angle[0] + Math.random() * (T.angle[1] - T.angle[0])) * Math.PI / 180;
+  // La componente en z tira hacia la linea de tiro: los tiros cruzan por delante del jugador
+  // en vez de morir al fondo del patio, donde no se ven.
+  p.vel = new THREE.Vector3(
+    Math.cos(alza) * fuerza * L.dir,
+    Math.sin(alza) * fuerza,
+    T.toward[0] + Math.random() * (T.toward[1] - T.toward[0]));
   p.setOpen(false);
   return p;
 }

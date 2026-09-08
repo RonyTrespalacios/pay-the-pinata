@@ -11,7 +11,7 @@ setlocal
 cd /d "%~dp0"
 
 echo.
-echo   PARTY TAB
+echo   PAY THE PINATA
 echo   ---------
 echo.
 

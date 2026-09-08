@@ -20,7 +20,7 @@ function crearVentana() {
     backgroundColor: FONDO,
     show: false,               // se muestra en ready-to-show, ver abajo
     autoHideMenuBar: true,
-    title: 'Party Tab',
+    title: 'Pay the Piñata',
     icon: path.join(__dirname, 'assets', 'icon.ico'),
     webPreferences: {
       /* El juego no habla con el proceso main: guarda en localStorage y ya.
