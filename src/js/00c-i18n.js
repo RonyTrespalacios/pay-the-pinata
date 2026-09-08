@@ -64,7 +64,11 @@ const ES = {
   // banners / toasts
   'LAUNCHER!': '¡LANZADOR!', 'BOSS DOWN': 'JEFE DERROTADO', 'NO TABS LEFT': 'NO QUEDAN TABS', 'THE CENTERPIECE': 'EL CENTERPIECE', 'STAR SHOWER': 'LLUVIA DE ESTRELLAS', 'GOLDEN HOUR': 'HORA DORADA', 'SUGAR STORM': 'TORMENTA DE AZÚCAR', 'STAMPEDE': 'ESTAMPIDA', 'SPIKE PARTY': 'FIESTA DE PÚAS',
   'the launcher empties itself': 'el lanzador se vacía', 'everything pays double for 10 s': 'todo paga doble durante 10 s', 'piñatas hang three times faster for 12 s': 'las piñatas cuelgan tres veces más rápido durante 12 s', 'sprinters cross the yard': 'velocistas cruzan el patio', 'three Spikers — hold your fire': 'tres Spikers — no dispares',
-  'Hold E to start the Run.': 'Mantén E para empezar la Run.', 'Muted': 'Silencio', 'Sound on': 'Sonido activado', 'A Lucky Llama! Hit it before it leaves the yard.': '¡Una Llama de la Suerte! Dale antes de que salga del patio.',
+  'Hold E to start the Run.': 'Mantén E para empezar la Run.',
+  'ENCORE! Five more seconds — keep the Streak alive.': '¡BIS! Cinco segundos más — mantén viva la Streak.',
+  'SUGAR RUSH — the clock freezes, everything pays double!': '¡SUGAR RUSH — el reloj se para y todo paga el doble!',
+  'Sugar Hands! Crits refund 3 Rounds for 10 s': '¡Manos de Azúcar! Los Crits devuelven 3 Balas durante 10 s',
+  'THE CENTERPIECE IS BROKEN! No Tabs left.': '¡EL CENTERPIECE ESTÁ ROTO! No quedan Cuentas.', 'Muted': 'Silencio', 'Sound on': 'Sonido activado', 'A Lucky Llama! Hit it before it leaves the yard.': '¡Una Llama de la Suerte! Dale antes de que salga del patio.',
   'That is the loop: Run → Candy → pay or grow. Have fun.': 'Ese es el bucle: Run → Candy → pagar o crecer. Diviértete.',
   // stations
   'The Mailbox': 'El Buzón', 'Mailbox': 'Buzón', 'Skill Tree': 'Árbol', 'The Skill Tree': 'El Árbol', 'The Candy Tree': 'El Árbol de Dulces', 'Candy Tree': 'Árbol de Dulces', 'Weapons': 'Armas', 'Weapons table': 'Mesa de armas', 'Charms': 'Charms', 'Keepsakes table': 'Mesa de Keepsakes', 'Keepsakes & Charms': 'Keepsakes y Charms', "Party's Over": "Party's Over", 'Porch light': 'Luz del porche', 'flip the porch light': 'apaga la luz del porche', 'The firing line': 'La línea de tiro', 'The Centerpiece': 'El Centerpiece', 'stand here to face it': 'párate aquí para enfrentarlo', 'is waiting': 'te espera', 'The launcher is loaded': 'El lanzador está cargado', 'Tía Chelo': 'Tía Chelo', 'has words for you': 'tiene algo que decirte', 'has a story · E to talk': 'tiene una historia · E para hablar', 'E to talk': 'E para hablar', 'Tin-can range': 'Tiro al lata', 'shoot to test your weapon': 'dispara para probar tu arma', 'Party summary': 'Resumen de la Party',
@@ -123,6 +127,27 @@ const ES_RULES = [
   [/^Tier (\d+): face (.+) at the firing line — a Keepsake is inside$/, (m, t, b) => `Tier ${t}: enfrenta a ${b} en la línea de tiro — hay un Keepsake dentro`],
   [/^STREAK (\d+) · ×(.+)$/, (m, n, x) => `STREAK ${n} · ×${x}`],
   [/^(.+) IN (\d)$/, (m, e, n) => `${T(e)} EN ${n}`],
+  // ---- Cadenas que el juego COMPONE en ingles antes de traducir ----
+  // Un `'X ' + n + ' de Y'` no puede tener entrada en el mapa, porque la cadena final no existe
+  // hasta que corre. Aqui es donde se recogen: sin esto salen a medias, con lo que pille el
+  // glosario y el resto en ingles, que es justo lo que se veia en la mesa de armas.
+  [/^(SWEET HIT|CRIT) \+(\d+) Rounds?$/, (m, l, n) => `${ES[l] || l} +${n} ${n === '1' ? 'Bala' : 'Balas'}`],
+  [/^BLAST ×(\d+)$/, (m, n) => `EXPLOSIÓN ×${n}`],
+  [/^SPIKER! −(.+) s$/, (m, n) => `¡SPIKER! −${n} s`],
+  [/^(\d+)% of the clock$/, (m, n) => `${n}% del reloj`],
+  [/^\+([\d.,]+) per hit$/, (m, n) => `+${n.replace('.', ',')} por acierto`],
+  [/^(\d+)% · (\d+) Rounds?$/, (m, c, r) => `${c}% · ${r} ${r === '1' ? 'Bala' : 'Balas'}`],
+  [/^ARMOR (\d+)\/(\d+)$/, (m, a, b) => `BLINDAJE ${a}/${b}`],
+  [/^\+(\d+) KEEPSAKES?$/, (m, n) => `+${n} ${n === '1' ? 'RECUERDO' : 'RECUERDOS'}`],
+  [/^SPILLOVER \+(\d+)$/, (m, n) => `EXCEDENTE +${n}`],
+  [/^VACUUM \+(\d+)$/, (m, n) => `ASPIRADORA +${n}`],
+  [/^CLUSTER! (\d+) Mini Stars$/, (m, n) => `¡RACIMO! ${n} Mini Estrellas`],
+  [/^Layer (\d+) of (\d+) broken!$/, (m, a, b) => `¡Capa ${a} de ${b} rota!`],
+  [/^(.+) is down\. \+1 Keepsake\.$/, (m, b) => `${b} ha caído. +1 Recuerdo.`],
+  // el aviso de una estacion todavia cerrada, que es el que se ve al llegar a la mesa de armas
+  [/^(.+): opens after run (\d+)\.$/, (m, st, n) => `${T(st)}: abre tras la Ronda ${n}.`],
+  // y el de un arma que aun no se ha comprado
+  [/^(.+): buy it at the weapons table \(([\d.,]+) Candy, Tier (\d+)\)$/, (m, w, p, t) => `${T(w)}: cómprala en la mesa de armas (${p} Dulces, Nivel ${t})`],
   [/^(.+) — (.+)$/, (m, a, b) => (ES[a] && ES[b]) ? `${ES[a]} — ${ES[b]}` : null],
   [/^(\d+(?:\.\d+)?) (Rounds?|Misses|Miss|Layers|Layer)$/, (m, n, w) => `${n} ${T(w)}`],
   [/^unlocked \((.+)\)$/, (m, x) => `desbloqueado (${x})`],

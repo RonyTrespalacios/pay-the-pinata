@@ -214,8 +214,22 @@ coordenadas de pantalla, y recogen cualquier error de consola por el camino.
 npm run test            # el JUEGO, en un navegador: menú, Run, Buzón, Árbol
 npm run test:app        # la CAJA: la ventana de Electron sobre el árbol de fuentes
 npm run test:floaters   # que los avisos de impacto no se pisen entre ellos
+npm run test:i18n       # que no quede nada en inglés jugando en español
 node test/electron.js "release/win-unpacked/Pay the Piñata.exe"   # y sobre el .exe
 ```
+
+`test:i18n` es la que evita el fallo más fácil de dejar pasar: una frase en
+inglés en la partida en español. Hace dos cosas. Instrumenta `T()` y anota
+**cada cadena que entra y lo que sale**, recorre el juego entero — carteles,
+avisos, los seis paneles, cada ficha del árbol, cada arma y cada mejora, la
+historia completa de la Tía, una Ronda con todos sus avisos y el resumen — y
+marca lo que sale sonando a inglés. Y después barre el DOM de diecisiete
+pantallas leyendo el texto pintado, que es lo único que caza el inglés escrito
+a pelo en un `innerHTML`, porque eso no pasa por `T()` y no se entera nadie.
+
+Mira el RESULTADO y no el camino a propósito: una cadena puede escaparse del
+mapa y aun así quedar perfecta porque el glosario la resuelve entera, y al revés
+— puede casar una regla que devuelve `null` y salir en inglés igualmente.
 
 `test:floaters` existe porque ese fallo es invisible para todo lo demás: no
 lanza ningún error, no rompe ningún estado, el juego funciona. Un Punto Dulce
