@@ -177,7 +177,19 @@
 .chelo-say{background:#fff;border-radius:16px;padding:14px 18px;border:3px solid #f3e2c4}
 .chelo-say .line{font-size:18px;line-height:1.45;margin:6px 0 12px;font-style:italic}
 .chelo-actions{display:flex;gap:8px;flex-wrap:wrap}
-.chelo-actions .menu-btn{font-size:14px;padding:8px 14px}
+/* Los botones de Tía Chelo viven DENTRO de su bocadillo, y el bocadillo es blanco. .menu-btn
+   está hecho para los menús oscuros del juego — texto blanco sobre un velo blanco translúcido —
+   así que ahí dentro era blanco sobre blanco y no se veía ninguno. Sobre el bocadillo claro se
+   visten como el resto de botones de panel (los .chips), con tinta oscura y borde marcado.
+
+   Cuando la Tía viene a cobrar, el bocadillo se pone oscuro (.dread) y entonces el .menu-btn de
+   siempre sí contrasta: ahí se le devuelve su aspecto original. */
+.chelo-actions .menu-btn{font-size:14px;padding:8px 14px;background:#fff6e6;border:2px solid #f0e2c8;color:var(--ink);backdrop-filter:none;box-shadow:0 2px 0 #e6d5b8}
+.chelo-actions .menu-btn:hover{background:#fff;border-color:var(--pink);transform:translateY(-2px)}
+.chelo-actions .menu-btn:active{transform:translateY(0);box-shadow:none}
+.chelo-actions .menu-btn:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
+.chelo-wrap.dread .chelo-actions .menu-btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);color:#fff;box-shadow:none}
+.chelo-wrap.dread .chelo-actions .menu-btn:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.55)}
 @media (max-width:700px){.chelo-wrap{grid-template-columns:1fr}}
 .rec-cols{display:grid;grid-template-columns:1.1fr 1fr;gap:18px}
 .recap-grid.four{grid-template-columns:repeat(4,1fr)}
